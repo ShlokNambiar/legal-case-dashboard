@@ -10,19 +10,49 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData()
-    const file = formData.get('file') as File || formData.get('key') as File
+    // First, check if 'key' contains CSV text data (which is what your automation sends)
+    const keyValue = formData.get('key')
+    if (keyValue && typeof keyValue === 'string') {
+      console.log('Found CSV text in key field, processing for Trimbakeshwar')
+      return await processCsvForLocation(keyValue, "Trimbakeshwar")
+    }
 
-    if (!file) {
-      const csvData = formData.get('csvData') as string
-      if (!csvData) {
-        return NextResponse.json({ error: "No CSV file or data provided" }, { status: 400 })
+    // If key is a file, process it as a file
+    if (keyValue && keyValue instanceof File) {
+      console.log('Found file in key field:', keyValue.name, 'size:', keyValue.size)
+      try {
+        const bytes = await keyValue.arrayBuffer()
+        const csvText = new TextDecoder('utf-8').decode(bytes)
+        return await processCsvForLocation(csvText, "Trimbakeshwar")
+      } catch (fileError) {
+        console.error('Error reading key file:', fileError)
+        return NextResponse.json({ error: "Failed to read uploaded file from key field" }, { status: 500 })
       }
+    }
+
+    // Look for a file in the 'file' field as fallback
+    const file = formData.get('file') as File
+    if (file && file instanceof File) {
+      console.log('Found file in file field:', file.name, 'size:', file.size)
+      try {
+        const bytes = await file.arrayBuffer()
+        const csvText = new TextDecoder('utf-8').decode(bytes)
+        return await processCsvForLocation(csvText, "Trimbakeshwar")
+      } catch (fileError) {
+        console.error('Error reading file field:', fileError)
+        return NextResponse.json({ error: "Failed to read uploaded file from file field" }, { status: 500 })
+      }
+    }
+
+    // Check if CSV data was sent as text in csvData field
+    const csvData = formData.get('csvData') as string
+    if (csvData) {
+      console.log('Found CSV data in csvData field')
       return await processCsvForLocation(csvData, "Trimbakeshwar")
     }
 
-    const bytes = await file.arrayBuffer()
-    const csvText = new TextDecoder().decode(bytes)
-    return await processCsvForLocation(csvText, "Trimbakeshwar")
+    console.log('No CSV data found in any field')
+    return NextResponse.json({ error: "No CSV file or data provided" }, { status: 400 })
 
   } catch (error) {
     console.error("Error processing Trimbakeshwar CSV:", error)
