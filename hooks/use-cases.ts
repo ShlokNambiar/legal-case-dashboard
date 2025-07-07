@@ -24,10 +24,16 @@ export function useCases() {
 
       // First try to fetch from API
       try {
+        console.log('Fetching cases from API...')
         const response = await fetch('/api/update-cases')
+        console.log('API response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('API response data:', data)
+
           if (data.success && data.cases) {
+            console.log(`Successfully loaded ${data.cases.length} cases from API`)
             setCases(data.cases)
             setLastUpdated(data.lastUpdated ? new Date(data.lastUpdated) : new Date())
 
@@ -37,7 +43,11 @@ export function useCases() {
               lastUpdated: data.lastUpdated || new Date().toISOString(),
             }))
             return
+          } else {
+            console.log('API response missing success or cases:', data)
           }
+        } else {
+          console.log('API response not ok:', response.status, response.statusText)
         }
       } catch (apiError) {
         console.log('API not available, falling back to localStorage:', apiError)
@@ -102,6 +112,8 @@ export function useCases() {
   }
 
   const refreshCases = () => {
+    // Clear localStorage to force API fetch
+    localStorage.removeItem("legal-cases")
     loadCases()
   }
 
