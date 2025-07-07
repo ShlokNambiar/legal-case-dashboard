@@ -9,14 +9,24 @@ export async function POST(request: NextRequest) {
     'Access-Control-Allow-Headers': 'Content-Type',
   }
   try {
+    console.log('=== API Request Started ===')
+    console.log('Request method:', request.method)
+    console.log('Request URL:', request.url)
+    console.log('Content-Type:', request.headers.get('content-type'))
+
     // Get the form data from the request
     const formData = await request.formData()
+    console.log('Form data parsed successfully')
 
     // Debug: Log all form field names and their types
     console.log('Form data keys:', Array.from(formData.keys()))
     for (const [key, value] of formData.entries()) {
       console.log(`Field "${key}":`, typeof value, value instanceof File ? `File: ${value.name}, size: ${value.size}` : `Value: ${String(value).substring(0, 100)}...`)
     }
+
+    // Check if we have both key and value fields (from your automation)
+    const allValues = formData.getAll('key').concat(formData.getAll('value'))
+    console.log('All key/value entries:', allValues.length)
 
     // First, check if 'key' contains CSV text data (which is what your automation sends)
     const keyValue = formData.get('key')
@@ -27,6 +37,19 @@ export async function POST(request: NextRequest) {
         return await processCsvText(keyValue)
       } catch (csvError) {
         console.error('Error processing CSV text from key field:', csvError)
+        return NextResponse.json({ error: "Failed to process CSV text", details: csvError.message }, { status: 500 })
+      }
+    }
+
+    // Also check 'value' field (your automation might be sending both)
+    const valueField = formData.get('value')
+    if (valueField && typeof valueField === 'string') {
+      console.log('Found CSV text in value field, processing directly')
+      console.log('CSV text preview:', valueField.substring(0, 200))
+      try {
+        return await processCsvText(valueField)
+      } catch (csvError) {
+        console.error('Error processing CSV text from value field:', csvError)
         return NextResponse.json({ error: "Failed to process CSV text", details: csvError.message }, { status: 500 })
       }
     }
