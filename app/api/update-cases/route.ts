@@ -218,8 +218,9 @@ function detectLocation(caseData: Record<string, string>, csvText: string): stri
   // Method 2: Check each field individually for location info (case-by-case basis)
   for (const [key, value] of Object.entries(caseData)) {
     const val = value?.toLowerCase() || ''
-    if (val.includes('trimbakeshwar')) return "Trimbakeshwar"
-    if (val.includes('igatpuri')) return "Igatpuri"
+    // Check for Devanagari/Marathi text
+    if (val.includes('त्र्यंबकेश्वर') || val.includes('trimbakeshwar')) return "Trimbakeshwar"
+    if (val.includes('इगतपुरी') || val.includes('igatpuri')) return "Igatpuri"
   }
 
   // Method 3: Check if there's already a taluka/location field
@@ -227,15 +228,17 @@ function detectLocation(caseData: Record<string, string>, csvText: string): stri
   for (const field of locationFields) {
     const value = caseData[field]?.toLowerCase()
     if (value) {
-      if (value.includes('trimbakeshwar')) return "Trimbakeshwar"
-      if (value.includes('igatpuri')) return "Igatpuri"
+      if (value.includes('त्र्यंबकेश्वर') || value.includes('trimbakeshwar')) return "Trimbakeshwar"
+      if (value.includes('इगतपुरी') || value.includes('igatpuri')) return "Igatpuri"
     }
   }
 
   // Method 4: Check filename or overall CSV content (last resort)
   const textToCheck = csvText.toLowerCase()
-  if (textToCheck.includes('trimbakeshwar') && !textToCheck.includes('igatpuri')) return "Trimbakeshwar"
-  if (textToCheck.includes('igatpuri') && !textToCheck.includes('trimbakeshwar')) return "Igatpuri"
+  if ((textToCheck.includes('त्र्यंबकेश्वर') || textToCheck.includes('trimbakeshwar')) &&
+      !(textToCheck.includes('इगतपुरी') || textToCheck.includes('igatpuri'))) return "Trimbakeshwar"
+  if ((textToCheck.includes('इगतपुरी') || textToCheck.includes('igatpuri')) &&
+      !(textToCheck.includes('त्र्यंबकेश्वर') || textToCheck.includes('trimbakeshwar'))) return "Igatpuri"
 
   // Default: If no location detected, return Igatpuri as default
   return "Igatpuri" // Default location
