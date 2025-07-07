@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { initializeDatabase, upsertCases, getAllCases, getCaseStats } from "@/lib/db"
 
 // This API endpoint will be called by your automation
 export async function POST(request: NextRequest) {
@@ -141,33 +142,29 @@ async function processCsvText(csvText: string) {
 
     console.log(`Processed ${cases.length} cases from CSV - Igatpuri: ${igatpuriCases.length}, Trimbakeshwar: ${trimbakeshwarCases.length}`)
 
-    // Store the cases in a simple JSON file for the dashboard to read
-    // In production, this would be a database
-    const fs = require('fs')
-    const path = require('path')
-
+    // Initialize database and save cases
     try {
-      // Create a data directory if it doesn't exist
-      const dataDir = path.join(process.cwd(), 'data')
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true })
-      }
+      await initializeDatabase()
 
-      // Save the cases to a JSON file
-      const dataFile = path.join(dataDir, 'cases.json')
-      const caseData = {
-        cases: cases,
-        lastUpdated: new Date().toISOString(),
-        breakdown: {
-          igatpuri: igatpuriCases.length,
-          trimbakeshwar: trimbakeshwarCases.length
-        }
-      }
+      // Convert cases to database format
+      const dbCases = cases.map(case_ => ({
+        sr_no: case_["Sr No"] || "",
+        case_number: case_["Case Number"] || "",
+        applicant_name: case_["Applicant Name"] || "",
+        respondent_name: case_["Respondent Name"] || "",
+        status: case_["Status"] || "",
+        remarks: case_["Remarks"] || "",
+        taluka: case_.taluka || "Unknown"
+      }))
 
-      fs.writeFileSync(dataFile, JSON.stringify(caseData, null, 2))
-      console.log('Cases saved to file:', dataFile)
-    } catch (fileError) {
-      console.error('Error saving cases to file:', fileError)
+      const result = await upsertCases(dbCases)
+      if (!result.success) {
+        console.error('Error saving cases to database:', result.error)
+      } else {
+        console.log('Cases saved to database successfully')
+      }
+    } catch (dbError) {
+      console.error('Error with database operation:', dbError)
       // Continue anyway - don't fail the API call
     }
 
@@ -269,45 +266,52 @@ export async function OPTIONS() {
 // GET endpoint to fetch current cases
 export async function GET() {
   try {
-    const fs = require('fs')
-    const path = require('path')
+    await initializeDatabase()
 
-    const dataFile = path.join(process.cwd(), 'data', 'cases.json')
+    const cases = await getAllCases()
+    const stats = await getCaseStats()
 
-    if (fs.existsSync(dataFile)) {
-      const fileContent = fs.readFileSync(dataFile, 'utf8')
-      const caseData = JSON.parse(fileContent)
+    // Convert database format back to dashboard format
+    const dashboardCases = cases.map(case_ => ({
+      "Sr No": case_.sr_no,
+      "Case Number": case_.case_number,
+      "Applicant Name": case_.applicant_name,
+      "Respondent Name": case_.respondent_name,
+      "Status": case_.status,
+      "Remarks": case_.remarks,
+      taluka: case_.taluka,
+      date: case_.created_at,
+      caseId: case_.case_number,
+      type: "Legal Case",
+      priority: case_.status === "प्राप्त" ? "Normal" : "High",
+      nextAction: case_.status === "प्राप्त" ? "Review" : "Follow up",
+      hearingDate: case_.created_at,
+      reminderDate: case_.created_at
+    }))
 
-      return NextResponse.json({
-        success: true,
-        ...caseData
-      }, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        }
-      })
-    } else {
-      return NextResponse.json({
-        success: true,
-        cases: [],
-        lastUpdated: null,
-        breakdown: { igatpuri: 0, trimbakeshwar: 0 },
-        message: "No cases found"
-      }, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        }
-      })
+    const breakdown = {
+      igatpuri: stats.byTaluka.find(s => s.taluka === 'Igatpuri')?.total_cases || 0,
+      trimbakeshwar: stats.byTaluka.find(s => s.taluka === 'Trimbakeshwar')?.total_cases || 0
     }
+
+    return NextResponse.json({
+      success: true,
+      cases: dashboardCases,
+      lastUpdated: cases.length > 0 ? cases[0].created_at : new Date().toISOString(),
+      breakdown: breakdown,
+      stats: stats
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
   } catch (error) {
-    console.error('Error reading cases:', error)
+    console.error('Error fetching cases from database:', error)
     return NextResponse.json({
       success: false,
-      error: "Failed to read cases",
+      error: "Failed to fetch cases from database",
       cases: []
     }, {
       status: 500,
