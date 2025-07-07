@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
 
     // Check if 'key' contains a Google Drive file ID instead of actual file
     const keyValue = formData.get('key') as string
-    if (keyValue && typeof keyValue === 'string' && keyValue.match(/^[a-zA-Z0-9_-]+$/)) {
+    if (keyValue && typeof keyValue === 'string' &&
+        keyValue.length > 20 && keyValue.length < 50 &&
+        keyValue.match(/^[a-zA-Z0-9_-]+$/) &&
+        !keyValue.includes(',') && !keyValue.includes('\n')) {
       // This looks like a Google Drive file ID, try to download it
       try {
         const driveUrl = `https://drive.google.com/uc?export=download&id=${keyValue}`
@@ -32,6 +35,11 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.log('Failed to download from Google Drive:', error)
       }
+    }
+
+    // If keyValue contains CSV data directly, process it
+    if (keyValue && typeof keyValue === 'string' && (keyValue.includes(',') || keyValue.includes('\n'))) {
+      return await processCsvText(keyValue)
     }
 
     if (!file) {
