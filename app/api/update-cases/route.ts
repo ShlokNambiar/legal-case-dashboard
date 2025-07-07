@@ -125,37 +125,37 @@ async function processCsvText(csvText: string) {
 
 // Helper function to detect location based on CSV content
 function detectLocation(caseData: Record<string, string>, csvText: string): string {
-  // Method 1: Check if there's already a taluka/location field
+  // Method 1: Check case numbers or IDs for patterns (most specific)
+  const caseNumber = caseData['Case Number'] || caseData['caseNumber'] || caseData['Case ID'] || caseData['caseId']
+  if (caseNumber) {
+    const caseNum = caseNumber.toLowerCase()
+    if (caseNum.includes('tmb') || caseNum.includes('trimbakeshwar')) return "Trimbakeshwar"
+    if (caseNum.includes('igt') || caseNum.includes('igatpuri')) return "Igatpuri"
+  }
+
+  // Method 2: Check each field individually for location info (case-by-case basis)
+  for (const [key, value] of Object.entries(caseData)) {
+    const val = value?.toLowerCase() || ''
+    if (val.includes('trimbakeshwar')) return "Trimbakeshwar"
+    if (val.includes('igatpuri')) return "Igatpuri"
+  }
+
+  // Method 3: Check if there's already a taluka/location field
   const locationFields = ['taluka', 'location', 'court', 'office', 'jurisdiction']
   for (const field of locationFields) {
     const value = caseData[field]?.toLowerCase()
     if (value) {
-      if (value.includes('igatpuri')) return "Igatpuri"
       if (value.includes('trimbakeshwar')) return "Trimbakeshwar"
+      if (value.includes('igatpuri')) return "Igatpuri"
     }
   }
 
-  // Method 2: Check filename or any text content
+  // Method 4: Check filename or overall CSV content (last resort)
   const textToCheck = csvText.toLowerCase()
-  if (textToCheck.includes('igatpuri')) return "Igatpuri"
-  if (textToCheck.includes('trimbakeshwar')) return "Trimbakeshwar"
+  if (textToCheck.includes('trimbakeshwar') && !textToCheck.includes('igatpuri')) return "Trimbakeshwar"
+  if (textToCheck.includes('igatpuri') && !textToCheck.includes('trimbakeshwar')) return "Igatpuri"
 
-  // Method 3: Check case numbers or IDs for patterns
-  const caseNumber = caseData['Case Number'] || caseData['caseNumber'] || caseData['Case ID'] || caseData['caseId']
-  if (caseNumber) {
-    const caseNum = caseNumber.toLowerCase()
-    if (caseNum.includes('igt') || caseNum.includes('igatpuri')) return "Igatpuri"
-    if (caseNum.includes('tmb') || caseNum.includes('trimbakeshwar')) return "Trimbakeshwar"
-  }
-
-  // Method 4: Check any field that might contain location info
-  for (const [key, value] of Object.entries(caseData)) {
-    const val = value?.toLowerCase() || ''
-    if (val.includes('igatpuri')) return "Igatpuri"
-    if (val.includes('trimbakeshwar')) return "Trimbakeshwar"
-  }
-
-  // Default: If no location detected, try to infer from context or return Igatpuri as default
+  // Default: If no location detected, return Igatpuri as default
   return "Igatpuri" // Default location
 }
 
