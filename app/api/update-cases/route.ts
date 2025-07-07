@@ -12,26 +12,41 @@ export async function POST(request: NextRequest) {
     // Get the form data from the request
     const formData = await request.formData()
 
-    // Debug: Log all form field names
+    // Debug: Log all form field names and their types
     console.log('Form data keys:', Array.from(formData.keys()))
+    for (const [key, value] of formData.entries()) {
+      console.log(`Field "${key}":`, typeof value, value instanceof File ? `File: ${value.name}, size: ${value.size}` : `Value: ${String(value).substring(0, 100)}...`)
+    }
 
     // Look for a file in the form data - try both 'file' and 'key' field names
     const file = formData.get('file') as File || formData.get('key') as File
+    console.log('Found file:', file ? `${file.name}, size: ${file.size}, type: ${file.type}` : 'No file found')
 
     if (!file) {
       // If no file, check if CSV data was sent as text
       const csvData = formData.get('csvData') as string
       if (!csvData) {
+        console.log('No file or CSV data found')
         return NextResponse.json({ error: "No CSV file or data provided" }, { status: 400 })
       }
 
       // Process the CSV data directly
+      console.log('Processing CSV data as text')
       return await processCsvText(csvData)
     }
 
     // If we have a file, read its contents
-    const bytes = await file.arrayBuffer()
-    const csvText = new TextDecoder().decode(bytes)
+    console.log('Processing file:', file.name, 'size:', file.size)
+    let csvText: string
+    try {
+      const bytes = await file.arrayBuffer()
+      console.log('File read successfully, bytes length:', bytes.byteLength)
+      csvText = new TextDecoder('utf-8').decode(bytes)
+      console.log('CSV text decoded, length:', csvText.length, 'preview:', csvText.substring(0, 200))
+    } catch (fileError) {
+      console.error('Error reading file:', fileError)
+      return NextResponse.json({ error: "Failed to read uploaded file" }, { status: 500 })
+    }
 
     const result = await processCsvText(csvText)
     return new NextResponse(result.body, {
