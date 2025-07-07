@@ -192,7 +192,14 @@ export default function IgatpuriDashboard() {
 
   // Filter cases for Igatpuri only
   const igatpuriCases = useMemo(() => {
-    return cases.filter((case_) => case_.taluka === "Igatpuri")
+    console.log('Total cases received:', cases.length)
+    console.log('Cases data:', cases)
+    const filtered = cases.filter((case_) => {
+      console.log(`Case taluka: "${case_.taluka}", matches Igatpuri:`, case_.taluka === "Igatpuri")
+      return case_.taluka === "Igatpuri"
+    })
+    console.log('Filtered Igatpuri cases:', filtered.length)
+    return filtered
   }, [cases])
 
   // Get unique values for filters
