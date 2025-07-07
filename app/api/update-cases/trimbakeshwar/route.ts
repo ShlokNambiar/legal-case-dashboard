@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const file = formData.get('file') as File || formData.get('key') as File
 
     if (!file) {
       const csvData = formData.get('csvData') as string
@@ -53,7 +53,7 @@ async function processCsvForLocation(csvText: string, location: string) {
         headers.forEach((header, index) => {
           caseData[header] = values[index]
         })
-        
+
         // Force assign the specified location
         caseData.taluka = location
         cases.push(caseData)
@@ -69,7 +69,7 @@ async function processCsvForLocation(csvText: string, location: string) {
       cases: cases.slice(0, 5),
       totalCases: cases.length,
       headers: headers
-    }, { 
+    }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',

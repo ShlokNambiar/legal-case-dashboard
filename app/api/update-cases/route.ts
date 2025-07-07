@@ -12,8 +12,8 @@ export async function POST(request: NextRequest) {
     // Get the form data from the request
     const formData = await request.formData()
 
-    // Look for a file in the form data
-    const file = formData.get('file') as File
+    // Look for a file in the form data - try both 'file' and 'key' field names
+    const file = formData.get('file') as File || formData.get('key') as File
 
     if (!file) {
       // If no file, check if CSV data was sent as text
