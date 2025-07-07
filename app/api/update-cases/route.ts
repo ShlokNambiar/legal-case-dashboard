@@ -18,6 +18,22 @@ export async function POST(request: NextRequest) {
     // Look for a file in the form data - try both 'file' and 'key' field names
     const file = formData.get('file') as File || formData.get('key') as File
 
+    // Check if 'key' contains a Google Drive file ID instead of actual file
+    const keyValue = formData.get('key') as string
+    if (keyValue && typeof keyValue === 'string' && keyValue.match(/^[a-zA-Z0-9_-]+$/)) {
+      // This looks like a Google Drive file ID, try to download it
+      try {
+        const driveUrl = `https://drive.google.com/uc?export=download&id=${keyValue}`
+        const response = await fetch(driveUrl)
+        if (response.ok) {
+          const csvText = await response.text()
+          return await processCsvText(csvText)
+        }
+      } catch (error) {
+        console.log('Failed to download from Google Drive:', error)
+      }
+    }
+
     if (!file) {
       // If no file, check if CSV data was sent as text
       const csvData = formData.get('csvData') as string
