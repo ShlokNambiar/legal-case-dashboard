@@ -22,7 +22,13 @@ export async function POST(request: NextRequest) {
     const keyValue = formData.get('key')
     if (keyValue && typeof keyValue === 'string') {
       console.log('Found CSV text in key field, processing directly')
-      return await processCsvText(keyValue)
+      console.log('CSV text preview:', keyValue.substring(0, 200))
+      try {
+        return await processCsvText(keyValue)
+      } catch (csvError) {
+        console.error('Error processing CSV text from key field:', csvError)
+        return NextResponse.json({ error: "Failed to process CSV text", details: csvError.message }, { status: 500 })
+      }
     }
 
     // If key is a file, process it as a file
@@ -61,12 +67,6 @@ export async function POST(request: NextRequest) {
 
     console.log('No CSV data found in any field')
     return NextResponse.json({ error: "No CSV file or data provided" }, { status: 400 })
-
-    const result = await processCsvText(csvText)
-    return new NextResponse(result.body, {
-      status: result.status,
-      headers: { ...headers, 'Content-Type': 'application/json' }
-    })
 
   } catch (error) {
     console.error("Error processing CSV:", error)
