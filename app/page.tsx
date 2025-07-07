@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Scale, MapPin, ArrowRight } from "lucide-react"
-import { FileUpload } from "@/components/file-upload"
+
 
 export default function HomePage() {
   return (
@@ -91,16 +91,7 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        {/* File Upload Section */}
-        <Card className="border border-gray-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-gray-900">Upload New Case Document</CardTitle>
-            <p className="text-sm text-gray-600">Upload .docx files to add new cases to the system</p>
-          </CardHeader>
-          <CardContent>
-            <FileUpload />
-          </CardContent>
-        </Card>
+
       </div>
     </div>
   )

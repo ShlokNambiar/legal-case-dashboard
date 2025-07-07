@@ -18,6 +18,7 @@ import {
   SortDesc,
   RefreshCw,
   Filter,
+  ArrowLeft,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -367,14 +368,26 @@ export default function IgatpuriDashboard() {
         <div className="mx-auto max-w-7xl space-y-4 p-4">
           {/* Header */}
           <div className="text-center space-y-2 pb-4 border-b bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border-orange-100">
-            <div className="flex items-center justify-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg">
-                <Scale className="h-5 w-5 text-white" />
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.location.href = '/'}
+                className="flex items-center gap-2 text-orange-700 hover:text-orange-900 hover:bg-orange-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg">
+                  <Scale className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-orange-900">Igatpuri Legal Case Dashboard</h1>
+                  <p className="text-sm text-orange-700">Sub-Divisional Magistrate Office, Nashik</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-orange-900">Igatpuri Legal Case Dashboard</h1>
-                <p className="text-sm text-orange-700">Sub-Divisional Magistrate Office, Nashik</p>
-              </div>
+              <div className="w-24"></div> {/* Spacer for centering */}
             </div>
 
             <div className="flex items-center justify-center gap-6 text-xs text-orange-600">
