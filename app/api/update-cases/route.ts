@@ -12,6 +12,9 @@ export async function POST(request: NextRequest) {
     // Get the form data from the request
     const formData = await request.formData()
 
+    // Debug: Log all form field names
+    console.log('Form data keys:', Array.from(formData.keys()))
+
     // Look for a file in the form data - try both 'file' and 'key' field names
     const file = formData.get('file') as File || formData.get('key') as File
 
