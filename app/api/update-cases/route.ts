@@ -271,22 +271,25 @@ export async function GET() {
     const cases = await getAllCases()
     const stats = await getCaseStats()
 
-    // Convert database format back to dashboard format
+    // Convert database format back to dashboard format (CaseData interface)
     const dashboardCases = cases.map(case_ => ({
-      "Sr No": case_.sr_no,
-      "Case Number": case_.case_number,
-      "Applicant Name": case_.applicant_name,
-      "Respondent Name": case_.respondent_name,
-      "Status": case_.status,
-      "Remarks": case_.remarks,
+      date: case_.created_at || new Date().toISOString(),
+      caseType: "Legal Case",
+      caseNumber: case_.case_number,
+      year: case_.case_number ? case_.case_number.split('/')[2] || "2023" : "2023",
+      appellant: case_.applicant_name,
+      respondent: case_.respondent_name,
+      status: case_.status,
       taluka: case_.taluka,
-      date: case_.created_at,
+      filedDate: case_.created_at || new Date().toISOString(),
+      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString(),
+      // Additional fields for dashboard compatibility
       caseId: case_.case_number,
-      type: "Legal Case",
       priority: case_.status === "प्राप्त" ? "Normal" : "High",
       nextAction: case_.status === "प्राप्त" ? "Review" : "Follow up",
-      hearingDate: case_.created_at,
-      reminderDate: case_.created_at
+      hearingDate: case_.created_at || new Date().toISOString(),
+      reminderDate: case_.created_at || new Date().toISOString(),
+      remarks: case_.remarks
     }))
 
     const breakdown = {
