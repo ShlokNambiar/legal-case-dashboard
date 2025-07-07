@@ -141,6 +141,36 @@ async function processCsvText(csvText: string) {
 
     console.log(`Processed ${cases.length} cases from CSV - Igatpuri: ${igatpuriCases.length}, Trimbakeshwar: ${trimbakeshwarCases.length}`)
 
+    // Store the cases in a simple JSON file for the dashboard to read
+    // In production, this would be a database
+    const fs = require('fs')
+    const path = require('path')
+
+    try {
+      // Create a data directory if it doesn't exist
+      const dataDir = path.join(process.cwd(), 'data')
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true })
+      }
+
+      // Save the cases to a JSON file
+      const dataFile = path.join(dataDir, 'cases.json')
+      const caseData = {
+        cases: cases,
+        lastUpdated: new Date().toISOString(),
+        breakdown: {
+          igatpuri: igatpuriCases.length,
+          trimbakeshwar: trimbakeshwarCases.length
+        }
+      }
+
+      fs.writeFileSync(dataFile, JSON.stringify(caseData, null, 2))
+      console.log('Cases saved to file:', dataFile)
+    } catch (fileError) {
+      console.error('Error saving cases to file:', fileError)
+      // Continue anyway - don't fail the API call
+    }
+
     return NextResponse.json({
       success: true,
       message: `Successfully processed ${cases.length} cases`,
@@ -238,9 +268,54 @@ export async function OPTIONS() {
 
 // GET endpoint to fetch current cases
 export async function GET() {
-  // In a real application, this would fetch from your database
-  // For demo purposes, we'll return sample data
-  return NextResponse.json({
-    message: "This endpoint would return current cases from database",
-  })
+  try {
+    const fs = require('fs')
+    const path = require('path')
+
+    const dataFile = path.join(process.cwd(), 'data', 'cases.json')
+
+    if (fs.existsSync(dataFile)) {
+      const fileContent = fs.readFileSync(dataFile, 'utf8')
+      const caseData = JSON.parse(fileContent)
+
+      return NextResponse.json({
+        success: true,
+        ...caseData
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      })
+    } else {
+      return NextResponse.json({
+        success: true,
+        cases: [],
+        lastUpdated: null,
+        breakdown: { igatpuri: 0, trimbakeshwar: 0 },
+        message: "No cases found"
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Error reading cases:', error)
+    return NextResponse.json({
+      success: false,
+      error: "Failed to read cases",
+      cases: []
+    }, {
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    })
+  }
 }

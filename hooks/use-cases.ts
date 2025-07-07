@@ -22,7 +22,28 @@ export function useCases() {
       setLoading(true)
       setError(null)
 
-      // Try to load from localStorage first (for persistence)
+      // First try to fetch from API
+      try {
+        const response = await fetch('/api/update-cases')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.cases) {
+            setCases(data.cases)
+            setLastUpdated(data.lastUpdated ? new Date(data.lastUpdated) : new Date())
+
+            // Also save to localStorage for offline access
+            localStorage.setItem("legal-cases", JSON.stringify({
+              cases: data.cases,
+              lastUpdated: data.lastUpdated || new Date().toISOString(),
+            }))
+            return
+          }
+        }
+      } catch (apiError) {
+        console.log('API not available, falling back to localStorage:', apiError)
+      }
+
+      // Fallback to localStorage if API fails
       const savedCases = localStorage.getItem("legal-cases")
       if (savedCases) {
         const parsed = JSON.parse(savedCases)
