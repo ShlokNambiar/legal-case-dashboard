@@ -12,30 +12,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File || formData.get('key') as File
 
-    // Check if 'key' contains a Google Drive file ID instead of actual file
-    const keyValue = formData.get('key') as string
-    if (keyValue && typeof keyValue === 'string' &&
-        keyValue.length > 20 && keyValue.length < 50 &&
-        keyValue.match(/^[a-zA-Z0-9_-]+$/) &&
-        !keyValue.includes(',') && !keyValue.includes('\n')) {
-      // This looks like a Google Drive file ID, try to download it
-      try {
-        const driveUrl = `https://drive.google.com/uc?export=download&id=${keyValue}`
-        const response = await fetch(driveUrl)
-        if (response.ok) {
-          const csvText = await response.text()
-          return await processCsvText(csvText, "Trimbakeshwar")
-        }
-      } catch (error) {
-        console.log('Failed to download from Google Drive:', error)
-      }
-    }
-
-    // If keyValue contains CSV data directly, process it
-    if (keyValue && typeof keyValue === 'string' && (keyValue.includes(',') || keyValue.includes('\n'))) {
-      return await processCsvText(keyValue, "Trimbakeshwar")
-    }
-
     if (!file) {
       const csvData = formData.get('csvData') as string
       if (!csvData) {
