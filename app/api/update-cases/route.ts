@@ -68,17 +68,32 @@ async function processCsvText(csvText: string) {
         headers.forEach((header, index) => {
           caseData[header] = values[index]
         })
+
+        // Auto-detect and assign location based on CSV content
+        const detectedLocation = detectLocation(caseData, csvText)
+        caseData.taluka = detectedLocation
+
         cases.push(caseData)
       }
     }
 
-    // In a real application, you would save this to a database
-    // For now, we'll return the processed data
-    console.log(`Processed ${cases.length} cases from CSV`)
+    // Categorize cases by location
+    const igatpuriCases = cases.filter(c => c.taluka === "Igatpuri")
+    const trimbakeshwarCases = cases.filter(c => c.taluka === "Trimbakeshwar")
+
+    // Save to localStorage for each location
+    await saveCasesToStorage(igatpuriCases, trimbakeshwarCases)
+
+    console.log(`Processed ${cases.length} cases from CSV - Igatpuri: ${igatpuriCases.length}, Trimbakeshwar: ${trimbakeshwarCases.length}`)
 
     return NextResponse.json({
       success: true,
       message: `Successfully processed ${cases.length} cases`,
+      breakdown: {
+        igatpuri: igatpuriCases.length,
+        trimbakeshwar: trimbakeshwarCases.length
+      },
+      detectedLocation: cases.length > 0 ? cases[0].taluka : "Unknown",
       cases: cases.slice(0, 5), // Return first 5 for verification
       totalCases: cases.length,
       headers: headers
@@ -106,6 +121,52 @@ async function processCsvText(csvText: string) {
       },
     )
   }
+}
+
+// Helper function to detect location based on CSV content
+function detectLocation(caseData: Record<string, string>, csvText: string): string {
+  // Method 1: Check if there's already a taluka/location field
+  const locationFields = ['taluka', 'location', 'court', 'office', 'jurisdiction']
+  for (const field of locationFields) {
+    const value = caseData[field]?.toLowerCase()
+    if (value) {
+      if (value.includes('igatpuri')) return "Igatpuri"
+      if (value.includes('trimbakeshwar')) return "Trimbakeshwar"
+    }
+  }
+
+  // Method 2: Check filename or any text content
+  const textToCheck = csvText.toLowerCase()
+  if (textToCheck.includes('igatpuri')) return "Igatpuri"
+  if (textToCheck.includes('trimbakeshwar')) return "Trimbakeshwar"
+
+  // Method 3: Check case numbers or IDs for patterns
+  const caseNumber = caseData['Case Number'] || caseData['caseNumber'] || caseData['Case ID'] || caseData['caseId']
+  if (caseNumber) {
+    const caseNum = caseNumber.toLowerCase()
+    if (caseNum.includes('igt') || caseNum.includes('igatpuri')) return "Igatpuri"
+    if (caseNum.includes('tmb') || caseNum.includes('trimbakeshwar')) return "Trimbakeshwar"
+  }
+
+  // Method 4: Check any field that might contain location info
+  for (const [key, value] of Object.entries(caseData)) {
+    const val = value?.toLowerCase() || ''
+    if (val.includes('igatpuri')) return "Igatpuri"
+    if (val.includes('trimbakeshwar')) return "Trimbakeshwar"
+  }
+
+  // Default: If no location detected, try to infer from context or return Igatpuri as default
+  return "Igatpuri" // Default location
+}
+
+// Helper function to save cases to storage (simulating database)
+async function saveCasesToStorage(igatpuriCases: any[], trimbakeshwarCases: any[]) {
+  // In a real application, this would save to a database
+  // For now, we'll just log the categorization
+  console.log(`Saving cases - Igatpuri: ${igatpuriCases.length}, Trimbakeshwar: ${trimbakeshwarCases.length}`)
+
+  // You could implement actual storage logic here
+  // For example, saving to different database tables or files
 }
 
 // Handle CORS preflight requests
