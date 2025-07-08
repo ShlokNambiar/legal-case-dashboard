@@ -33,7 +33,7 @@ import { useCases } from "@/hooks/use-cases"
 
 
 export default function TrimbakeshwarDashboard() {
-  const { cases, loading, error, lastUpdated, updateCasesFromCsv, refreshCases } = useCases()
+  const { cases, loading, error, lastUpdated, updateCasesFromCsv, refreshCases, addCase } = useCases()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("All Types")
@@ -222,22 +222,25 @@ export default function TrimbakeshwarDashboard() {
       lastUpdate: new Date().toISOString().split("T")[0],
     }
 
-    // Here you would typically make an API call to save the case
-    // For now, we'll just add it to the local cases array
-    console.log("Adding new case:", caseData)
+    // Add the case using the addCase function from useCases hook
+    const result = addCase(caseData)
 
-    // Reset form and close dialog
-    setNewCase({
-      caseNumber: "",
-      appellant: "",
-      respondent: "",
-      caseType: "Legal Case",
-      year: new Date().getFullYear().toString()
-    })
-    setAddCaseDialogOpen(false)
+    if (result.success) {
+      // Reset form and close dialog
+      setNewCase({
+        caseNumber: "",
+        appellant: "",
+        respondent: "",
+        caseType: "Legal Case",
+        year: new Date().getFullYear().toString()
+      })
+      setAddCaseDialogOpen(false)
 
-    // You could also trigger a refresh here
-    // refreshCases()
+      // Show success message
+      alert("Case added successfully!")
+    } else {
+      alert(`Failed to add case: ${result.error}`)
+    }
   }
 
   // Handle export

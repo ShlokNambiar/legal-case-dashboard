@@ -62,22 +62,12 @@ export default function HomePage() {
               </p>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Active Cases</span>
-                  <span className="font-semibold text-orange-600">Loading...</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Recent Updates</span>
-                  <span className="font-semibold text-green-600">Today</span>
-                </div>
-                <Link href="/igatpuri" className="block">
-                  <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                    Access Igatpuri Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/igatpuri" className="block">
+                <Button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  Access Igatpuri Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -93,22 +83,12 @@ export default function HomePage() {
               </p>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Active Cases</span>
-                  <span className="font-semibold text-indigo-600">Loading...</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Recent Updates</span>
-                  <span className="font-semibold text-green-600">Today</span>
-                </div>
-                <Link href="/trimbakeshwar" className="block">
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                    Access Trimbakeshwar Dashboard
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/trimbakeshwar" className="block">
+                <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  Access Trimbakeshwar Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

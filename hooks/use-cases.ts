@@ -117,6 +117,32 @@ export function useCases() {
     loadCases()
   }
 
+  const addCase = (newCase: CaseData) => {
+    try {
+      // Add the new case to the existing cases
+      const updatedCases = [...cases, newCase]
+      setCases(updatedCases)
+      setLastUpdated(new Date())
+
+      // Save to localStorage for persistence
+      localStorage.setItem(
+        "legal-cases",
+        JSON.stringify({
+          cases: updatedCases,
+          lastUpdated: new Date().toISOString(),
+        }),
+      )
+
+      console.log(`Successfully added new case: ${newCase.caseNumber}`)
+      return { success: true }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to add case"
+      setError(errorMessage)
+      console.error("Error adding case:", err)
+      return { success: false, error: errorMessage }
+    }
+  }
+
   return {
     cases,
     loading,
@@ -124,5 +150,6 @@ export function useCases() {
     lastUpdated,
     updateCasesFromCsv,
     refreshCases,
+    addCase,
   }
 }
