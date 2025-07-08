@@ -361,29 +361,30 @@ export default function TrimbakeshwarDashboard() {
         <div className="mx-auto max-w-7xl space-y-4 p-4">
           {/* Header */}
           <div className="text-center space-y-2 pb-4 border-b bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border-indigo-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => window.location.href = '/'}
-                className="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100"
+                className="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 self-start sm:self-center"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Home
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Back</span>
               </Button>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg">
                   <Scale className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-indigo-900">Trimbakeshwar Legal Case Dashboard</h1>
-                  <p className="text-sm text-indigo-700">Sub-Divisional Magistrate Office, Nashik</p>
+                <div className="text-center sm:text-left">
+                  <h1 className="text-lg sm:text-xl font-bold text-indigo-900">Trimbakeshwar Legal Case Dashboard</h1>
+                  <p className="text-xs sm:text-sm text-indigo-700">Sub-Divisional Magistrate Office, Nashik</p>
                 </div>
               </div>
-              <div className="w-24"></div> {/* Spacer for centering */}
+              <div className="hidden sm:block w-24"></div> {/* Spacer for centering on desktop */}
             </div>
 
-            <div className="flex items-center justify-center gap-6 text-xs text-indigo-600">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-xs text-indigo-600">
               <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
                 <span>Trimbakeshwar Subdivision</span>
@@ -403,31 +404,31 @@ export default function TrimbakeshwarDashboard() {
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <Card className="border border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50/50 to-white">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-indigo-600 mb-1">{stats.total}</div>
+              <CardContent className="p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">{stats.total}</div>
                 <div className="text-xs text-indigo-700">Total Cases</div>
               </CardContent>
             </Card>
 
             <Card className="border border-green-100 shadow-sm bg-gradient-to-br from-green-50/50 to-white">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">{stats.received}</div>
+              <CardContent className="p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">{stats.received}</div>
                 <div className="text-xs text-green-700">Received</div>
               </CardContent>
             </Card>
 
             <Card className="border border-cyan-100 shadow-sm bg-gradient-to-br from-cyan-50/50 to-white">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-600 mb-1">{stats.underReview}</div>
+              <CardContent className="p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-cyan-600 mb-1">{stats.underReview}</div>
                 <div className="text-xs text-cyan-700">Under Review</div>
               </CardContent>
             </Card>
 
             <Card className="border border-purple-100 shadow-sm bg-gradient-to-br from-purple-50/50 to-white">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-1">{stats.completed}</div>
+              <CardContent className="p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-purple-600 mb-1">{stats.completed}</div>
                 <div className="text-xs text-purple-700">Completed</div>
               </CardContent>
             </Card>
@@ -436,7 +437,7 @@ export default function TrimbakeshwarDashboard() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Left Column - Cases */}
-            <div className="lg:col-span-3 space-y-4">
+            <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
               {/* Search and Filters */}
               <Card className="border border-indigo-100 shadow-sm bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-4 space-y-4">
@@ -452,7 +453,7 @@ export default function TrimbakeshwarDashboard() {
                   </div>
 
                   {/* Filters */}
-                  <div className="grid grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     <Select value={selectedType} onValueChange={setSelectedType}>
                       <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50">
                         <SelectValue placeholder="Type" />
@@ -677,7 +678,7 @@ export default function TrimbakeshwarDashboard() {
             </div>
 
             {/* Right Sidebar */}
-            <div className="space-y-4">
+            <div className="space-y-4 order-1 lg:order-2">
               {/* Calendar */}
               <CalendarWidget cases={filteredCases} />
 

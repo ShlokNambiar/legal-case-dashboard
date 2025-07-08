@@ -12,12 +12,12 @@ export default function HomePage() {
       <div className="mx-auto max-w-4xl space-y-8 p-6">
         {/* Header */}
         <div className="text-center space-y-4 pb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
             <div className="p-3 bg-blue-600 rounded-lg">
               <Scale className="h-8 w-8 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Legal Case Monitoring System</h1>
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Legal Case Monitoring System</h1>
               <p className="text-gray-600">Sub-Divisional Magistrate Office, Nashik</p>
             </div>
           </div>
