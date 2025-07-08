@@ -26,6 +26,7 @@ export async function initializeDatabase() {
         case_number VARCHAR(100) NOT NULL,
         applicant_name VARCHAR(255) NOT NULL,
         respondent_name VARCHAR(255) NOT NULL,
+        received VARCHAR(100),
         status VARCHAR(100),
         remarks TEXT,
         taluka VARCHAR(50) NOT NULL,
@@ -33,16 +34,16 @@ export async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `
-    
+
     // Create index for better performance
     await sql`
       CREATE INDEX IF NOT EXISTS idx_legal_cases_taluka ON legal_cases(taluka)
     `
-    
+
     await sql`
       CREATE INDEX IF NOT EXISTS idx_legal_cases_case_number ON legal_cases(case_number)
     `
-    
+
     console.log('Database initialized successfully')
     return true
   } catch (error) {
@@ -56,20 +57,20 @@ export async function upsertCases(cases: CaseRecord[]) {
   try {
     // Clear existing cases (for now - in production you might want to do incremental updates)
     await sql`DELETE FROM legal_cases`
-    
+
     // Insert new cases
     for (const case_ of cases) {
       await sql`
         INSERT INTO legal_cases (
-          sr_no, case_number, applicant_name, respondent_name, 
+          sr_no, case_number, applicant_name, respondent_name,
           status, remarks, taluka
         ) VALUES (
-          ${case_.sr_no}, ${case_.case_number}, ${case_.applicant_name}, 
+          ${case_.sr_no}, ${case_.case_number}, ${case_.applicant_name},
           ${case_.respondent_name}, ${case_.status}, ${case_.remarks}, ${case_.taluka}
         )
       `
     }
-    
+
     console.log(`Successfully inserted ${cases.length} cases`)
     return { success: true, count: cases.length }
   } catch (error) {
@@ -82,7 +83,7 @@ export async function upsertCases(cases: CaseRecord[]) {
 export async function getAllCases(): Promise<CaseRecord[]> {
   try {
     const cases = await sql`
-      SELECT * FROM legal_cases 
+      SELECT * FROM legal_cases
       ORDER BY created_at DESC
     `
     return cases as CaseRecord[]
@@ -96,7 +97,7 @@ export async function getAllCases(): Promise<CaseRecord[]> {
 export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
   try {
     const cases = await sql`
-      SELECT * FROM legal_cases 
+      SELECT * FROM legal_cases
       WHERE taluka = ${taluka}
       ORDER BY created_at DESC
     `
@@ -111,23 +112,23 @@ export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
 export async function getCaseStats() {
   try {
     const stats = await sql`
-      SELECT 
+      SELECT
         taluka,
         COUNT(*) as total_cases,
         COUNT(CASE WHEN status = 'प्राप्त' THEN 1 END) as received_cases,
         COUNT(CASE WHEN status != 'प्राप्त' AND status != '----' THEN 1 END) as pending_cases
-      FROM legal_cases 
+      FROM legal_cases
       GROUP BY taluka
     `
-    
+
     const totalStats = await sql`
-      SELECT 
+      SELECT
         COUNT(*) as total_cases,
         COUNT(CASE WHEN status = 'प्राप्त' THEN 1 END) as received_cases,
         COUNT(CASE WHEN status != 'प्राप्त' AND status != '----' THEN 1 END) as pending_cases
       FROM legal_cases
     `
-    
+
     return {
       byTaluka: stats,
       total: totalStats[0]

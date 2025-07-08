@@ -5,7 +5,8 @@ export interface CaseData {
   year: string
   appellant: string
   respondent: string
-  status: string
+  received: string  // This will store the original "प्राप्त" or similar values
+  status: string    // This will be the new editable status field
   taluka: string
   filedDate: string
   lastUpdate: string
@@ -56,6 +57,14 @@ export function parseCsvToCases(csvText: string): CaseData[] {
           caseData.respondent = value
           break
         case "status":
+          // The original CSV "status" field becomes "received"
+          caseData.received = value
+          break
+        case "received":
+          caseData.received = value
+          break
+        case "custom_status":
+        case "custom status":
           caseData.status = value
           break
         case "taluka":
@@ -73,7 +82,8 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         year: caseData.year || new Date(caseData.date).getFullYear().toString(),
         appellant: caseData.appellant || "Unknown",
         respondent: caseData.respondent || "Unknown",
-        status: caseData.status || "Pending",
+        received: caseData.received || "प्राप्त",  // Default to "प्राप्त" for received status
+        status: caseData.status || "",  // Default to empty for editable status
         taluka: caseData.taluka || "Unknown",
         filedDate: caseData.date,
         lastUpdate: new Date().toISOString().split("T")[0],

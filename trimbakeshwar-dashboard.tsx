@@ -40,6 +40,7 @@ export default function TrimbakeshwarDashboard() {
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [casesPerPage, setCasesPerPage] = useState(10)
+  const [editableStatuses, setEditableStatuses] = useState<{[key: string]: string}>({})
 
   // Filter cases for Trimbakeshwar only
   const trimbakeshwarCases = useMemo(() => {
@@ -126,6 +127,16 @@ export default function TrimbakeshwarDashboard() {
     setCurrentPage(page)
   }
 
+  // Handle status update
+  const handleStatusUpdate = (caseNumber: string, newStatus: string) => {
+    setEditableStatuses(prev => ({
+      ...prev,
+      [caseNumber]: newStatus
+    }))
+    // Here you could also make an API call to persist the status change
+    // For now, we'll just store it in local state
+  }
+
   // Handle export
   const handleExport = (format: string) => {
     const dataToExport = filteredCases.map((case_) => ({
@@ -135,7 +146,8 @@ export default function TrimbakeshwarDashboard() {
       Year: case_.year,
       Appellant: case_.appellant,
       Respondent: case_.respondent,
-      Status: case_.status,
+      Received: case_.received || "प्राप्त",
+      Status: editableStatuses[case_.caseNumber] || case_.status || "",
     }))
 
     if (format === "CSV") {
@@ -417,6 +429,7 @@ export default function TrimbakeshwarDashboard() {
                           <TableHead className="font-semibold text-indigo-900">Year</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Appellant</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Respondent</TableHead>
+                          <TableHead className="font-semibold text-indigo-900">Received</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Status</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -448,12 +461,17 @@ export default function TrimbakeshwarDashboard() {
                                 <div className="text-sm">{case_.respondent}</div>
                               </TableCell>
                               <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <StatusIcon className={`h-3 w-3 ${statusInfo.color}`} />
-                                  <Badge variant={statusInfo.variant} className="text-xs">
-                                    {case_.status}
-                                  </Badge>
-                                </div>
+                                <Badge variant="secondary" className="text-xs">
+                                  {case_.received || "प्राप्त"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  value={editableStatuses[case_.caseNumber] || case_.status || ""}
+                                  onChange={(e) => handleStatusUpdate(case_.caseNumber, e.target.value)}
+                                  placeholder="Enter status..."
+                                  className="text-xs h-8 min-w-[120px]"
+                                />
                               </TableCell>
                             </TableRow>
                           )
