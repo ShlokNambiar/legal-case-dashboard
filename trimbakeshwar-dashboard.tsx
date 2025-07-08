@@ -38,6 +38,7 @@ export default function TrimbakeshwarDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("All Types")
   const [selectedStatus, setSelectedStatus] = useState("All Statuses")
+  const [selectedYear, setSelectedYear] = useState("All Years")
   const [currentPage, setCurrentPage] = useState(1)
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -47,6 +48,14 @@ export default function TrimbakeshwarDashboard() {
   const [statusDialogOpen, setStatusDialogOpen] = useState<{[key: string]: boolean}>({})
   const [tempStatusValue, setTempStatusValue] = useState("")
   const [currentEditingCase, setCurrentEditingCase] = useState<string | null>(null)
+  const [addCaseDialogOpen, setAddCaseDialogOpen] = useState(false)
+  const [newCase, setNewCase] = useState({
+    caseNumber: "",
+    appellant: "",
+    respondent: "",
+    caseType: "Legal Case",
+    year: new Date().getFullYear().toString()
+  })
 
   // Filter cases for Trimbakeshwar only
   const trimbakeshwarCases = useMemo(() => {
@@ -65,6 +74,15 @@ export default function TrimbakeshwarDashboard() {
     return statusList
   }, [trimbakeshwarCases, receivedStatuses])
 
+  const years = useMemo(() => {
+    const yearList = ["All Years", ...new Set(trimbakeshwarCases.map((c) => c.year).filter(Boolean))]
+    return yearList.sort((a, b) => {
+      if (a === "All Years") return -1
+      if (b === "All Years") return 1
+      return b.localeCompare(a) // Sort years in descending order
+    })
+  }, [trimbakeshwarCases])
+
   // Get today's date for comparison
   const today = new Date()
 
@@ -80,8 +98,9 @@ export default function TrimbakeshwarDashboard() {
       const matchesType = selectedType === "All Types" || case_.caseType === selectedType
       const matchesStatus = selectedStatus === "All Statuses" ||
         (receivedStatuses[case_.caseNumber] || case_.received) === selectedStatus
+      const matchesYear = selectedYear === "All Years" || case_.year === selectedYear
 
-      return matchesSearch && matchesType && matchesStatus
+      return matchesSearch && matchesType && matchesStatus && matchesYear
     })
 
     // Apply sorting
@@ -182,6 +201,45 @@ export default function TrimbakeshwarDashboard() {
     closeStatusDialog(caseNumber)
   }
 
+  // Handle add new case
+  const handleAddNewCase = () => {
+    if (!newCase.caseNumber || !newCase.appellant || !newCase.respondent) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    const caseData = {
+      date: new Date().toISOString().split("T")[0],
+      caseType: newCase.caseType,
+      caseNumber: newCase.caseNumber,
+      year: newCase.year,
+      appellant: newCase.appellant,
+      respondent: newCase.respondent,
+      received: "प्राप्त",
+      status: "",
+      taluka: "Trimbakeshwar",
+      filedDate: new Date().toISOString().split("T")[0],
+      lastUpdate: new Date().toISOString().split("T")[0],
+    }
+
+    // Here you would typically make an API call to save the case
+    // For now, we'll just add it to the local cases array
+    console.log("Adding new case:", caseData)
+
+    // Reset form and close dialog
+    setNewCase({
+      caseNumber: "",
+      appellant: "",
+      respondent: "",
+      caseType: "Legal Case",
+      year: new Date().getFullYear().toString()
+    })
+    setAddCaseDialogOpen(false)
+
+    // You could also trigger a refresh here
+    // refreshCases()
+  }
+
   // Handle export
   const handleExport = (format: string) => {
     const dataToExport = filteredCases.map((case_) => ({
@@ -218,6 +276,7 @@ export default function TrimbakeshwarDashboard() {
     setSearchTerm("")
     setSelectedType("All Types")
     setSelectedStatus("All Statuses")
+    setSelectedYear("All Years")
     setCurrentPage(1)
     setSortField(null)
   }
@@ -358,68 +417,97 @@ export default function TrimbakeshwarDashboard() {
                   </div>
 
                   {/* Filters */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    <Select value={selectedType} onValueChange={setSelectedType}>
-                      <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50">
-                        <SelectValue placeholder="Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {caseTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+                    <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                      <Select value={selectedType} onValueChange={setSelectedType}>
+                        <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50 min-w-[120px]">
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {caseTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50 min-w-[120px]">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Button
-                      variant="outline"
-                      onClick={handleClearFilters}
-                      className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
-                    >
-                      <Filter className="h-3 w-3 mr-1" />
-                      Clear
-                    </Button>
+                      <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50 min-w-[100px]">
+                          <SelectValue placeholder="Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
-                        >
-                          <Download className="h-3 w-3 mr-1" />
-                          Export
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleExport("CSV")}>Export as CSV</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExport("PDF")}>Export as PDF</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleExport("Excel")}>Export as Excel</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        onClick={() => setAddCaseDialogOpen(true)}
+                        className="h-9 text-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+                      >
+                        <span className="text-lg mr-1">+</span>
+                        <span className="hidden sm:inline">Add New Case</span>
+                        <span className="sm:hidden">Add</span>
+                      </Button>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={refreshCases}
-                      className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      Refresh
-                    </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleClearFilters}
+                        className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
+                      >
+                        <Filter className="h-3 w-3 mr-1" />
+                        <span className="hidden sm:inline">Clear</span>
+                        <span className="sm:hidden">Clear</span>
+                      </Button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            <span className="hidden sm:inline">Export</span>
+                            <span className="sm:hidden">Export</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleExport("CSV")}>Export as CSV</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport("PDF")}>Export as PDF</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport("Excel")}>Export as Excel</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Button
+                        variant="outline"
+                        onClick={refreshCases}
+                        disabled={loading}
+                        className="h-9 text-sm bg-white/50 border-indigo-200 hover:bg-indigo-50"
+                      >
+                        <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} />
+                        <span className="hidden sm:inline">Refresh</span>
+                        <span className="sm:hidden">Refresh</span>
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Results Info */}
@@ -632,6 +720,92 @@ export default function TrimbakeshwarDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Add New Case Dialog */}
+      <Dialog open={addCaseDialogOpen} onOpenChange={setAddCaseDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Case - Trimbakeshwar</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="caseNumber" className="text-right text-sm font-medium">
+                Case Number *
+              </label>
+              <Input
+                id="caseNumber"
+                value={newCase.caseNumber}
+                onChange={(e) => setNewCase(prev => ({ ...prev, caseNumber: e.target.value }))}
+                className="col-span-3"
+                placeholder="e.g., अपील/150/2023"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="appellant" className="text-right text-sm font-medium">
+                Appellant *
+              </label>
+              <Input
+                id="appellant"
+                value={newCase.appellant}
+                onChange={(e) => setNewCase(prev => ({ ...prev, appellant: e.target.value }))}
+                className="col-span-3"
+                placeholder="Appellant name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="respondent" className="text-right text-sm font-medium">
+                Respondent *
+              </label>
+              <Input
+                id="respondent"
+                value={newCase.respondent}
+                onChange={(e) => setNewCase(prev => ({ ...prev, respondent: e.target.value }))}
+                className="col-span-3"
+                placeholder="Respondent name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="caseType" className="text-right text-sm font-medium">
+                Case Type
+              </label>
+              <Select
+                value={newCase.caseType}
+                onValueChange={(value) => setNewCase(prev => ({ ...prev, caseType: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Legal Case">Legal Case</SelectItem>
+                  <SelectItem value="Appeal">Appeal</SelectItem>
+                  <SelectItem value="Civil Case">Civil Case</SelectItem>
+                  <SelectItem value="Criminal Case">Criminal Case</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="year" className="text-right text-sm font-medium">
+                Year
+              </label>
+              <Input
+                id="year"
+                value={newCase.year}
+                onChange={(e) => setNewCase(prev => ({ ...prev, year: e.target.value }))}
+                className="col-span-3"
+                placeholder="2024"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setAddCaseDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddNewCase} className="bg-indigo-600 hover:bg-indigo-700">
+              Add Case
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   )
 }
