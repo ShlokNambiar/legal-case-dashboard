@@ -26,6 +26,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 import { useCases } from "@/hooks/use-cases"
 
 
@@ -41,6 +43,10 @@ export default function TrimbakeshwarDashboard() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [casesPerPage, setCasesPerPage] = useState(10)
   const [editableStatuses, setEditableStatuses] = useState<{[key: string]: string}>({})
+  const [receivedStatuses, setReceivedStatuses] = useState<{[key: string]: string}>({})
+  const [statusDialogOpen, setStatusDialogOpen] = useState<{[key: string]: boolean}>({})
+  const [tempStatusValue, setTempStatusValue] = useState("")
+  const [currentEditingCase, setCurrentEditingCase] = useState<string | null>(null)
 
   // Filter cases for Trimbakeshwar only
   const trimbakeshwarCases = useMemo(() => {
@@ -54,9 +60,10 @@ export default function TrimbakeshwarDashboard() {
   }, [trimbakeshwarCases])
 
   const statuses = useMemo(() => {
-    const statusList = ["All Statuses", ...new Set(trimbakeshwarCases.map((c) => c.status).filter(Boolean))]
+    const receivedValues = trimbakeshwarCases.map((c) => receivedStatuses[c.caseNumber] || c.received).filter(Boolean)
+    const statusList = ["All Statuses", ...new Set(receivedValues)]
     return statusList
-  }, [trimbakeshwarCases])
+  }, [trimbakeshwarCases, receivedStatuses])
 
   // Get today's date for comparison
   const today = new Date()
@@ -71,7 +78,8 @@ export default function TrimbakeshwarDashboard() {
         case_.caseType?.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesType = selectedType === "All Types" || case_.caseType === selectedType
-      const matchesStatus = selectedStatus === "All Statuses" || case_.status === selectedStatus
+      const matchesStatus = selectedStatus === "All Statuses" ||
+        (receivedStatuses[case_.caseNumber] || case_.received) === selectedStatus
 
       return matchesSearch && matchesType && matchesStatus
     })
@@ -104,12 +112,23 @@ export default function TrimbakeshwarDashboard() {
   // Statistics calculations
   const stats = useMemo(() => {
     const total = filteredCases.length
-    const received = filteredCases.filter((c) => c.status?.toLowerCase().includes("received")).length
-    const underReview = filteredCases.filter((c) => c.status?.toLowerCase().includes("review")).length
-    const completed = filteredCases.filter((c) => c.status?.toLowerCase().includes("completed")).length
+    const receivedCount = filteredCases.filter((c) =>
+      (receivedStatuses[c.caseNumber] || c.received) === "प्राप्त"
+    ).length
+    const pendingCount = filteredCases.filter((c) =>
+      (receivedStatuses[c.caseNumber] || c.received) === "-"
+    ).length
+    const withStatusCount = filteredCases.filter((c) =>
+      (editableStatuses[c.caseNumber] || c.status || "").trim() !== ""
+    ).length
 
-    return { total, received, underReview, completed }
-  }, [filteredCases])
+    return {
+      total,
+      received: receivedCount,
+      pending: pendingCount,
+      withStatus: withStatusCount
+    }
+  }, [filteredCases, receivedStatuses, editableStatuses])
 
   // Handle sorting
   const handleSort = (field: string) => {
@@ -137,6 +156,32 @@ export default function TrimbakeshwarDashboard() {
     // For now, we'll just store it in local state
   }
 
+  // Handle received status update
+  const handleReceivedUpdate = (caseNumber: string, newReceived: string) => {
+    setReceivedStatuses(prev => ({
+      ...prev,
+      [caseNumber]: newReceived
+    }))
+  }
+
+  // Handle status dialog
+  const openStatusDialog = (caseNumber: string, currentStatus: string) => {
+    setCurrentEditingCase(caseNumber)
+    setTempStatusValue(editableStatuses[caseNumber] || currentStatus || "")
+    setStatusDialogOpen(prev => ({ ...prev, [caseNumber]: true }))
+  }
+
+  const closeStatusDialog = (caseNumber: string) => {
+    setStatusDialogOpen(prev => ({ ...prev, [caseNumber]: false }))
+    setCurrentEditingCase(null)
+    setTempStatusValue("")
+  }
+
+  const saveStatusDialog = (caseNumber: string) => {
+    handleStatusUpdate(caseNumber, tempStatusValue)
+    closeStatusDialog(caseNumber)
+  }
+
   // Handle export
   const handleExport = (format: string) => {
     const dataToExport = filteredCases.map((case_) => ({
@@ -146,7 +191,7 @@ export default function TrimbakeshwarDashboard() {
       Year: case_.year,
       Appellant: case_.appellant,
       Respondent: case_.respondent,
-      Received: case_.received || "प्राप्त",
+      Received: receivedStatuses[case_.caseNumber] || case_.received || "-",
       Status: editableStatuses[case_.caseNumber] || case_.status || "",
     }))
 
@@ -281,25 +326,23 @@ export default function TrimbakeshwarDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border border-cyan-100 shadow-sm bg-gradient-to-br from-cyan-50/50 to-white">
+            <Card className="border border-amber-100 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
               <CardContent className="p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-cyan-600 mb-1">{stats.underReview}</div>
-                <div className="text-xs text-cyan-700">Under Review</div>
+                <div className="text-xl sm:text-2xl font-bold text-amber-600 mb-1">{stats.pending}</div>
+                <div className="text-xs text-amber-700">Pending</div>
               </CardContent>
             </Card>
 
-            <Card className="border border-purple-100 shadow-sm bg-gradient-to-br from-purple-50/50 to-white">
+            <Card className="border border-blue-100 shadow-sm bg-gradient-to-br from-blue-50/50 to-white">
               <CardContent className="p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-purple-600 mb-1">{stats.completed}</div>
-                <div className="text-xs text-purple-700">Completed</div>
+                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{stats.withStatus}</div>
+                <div className="text-xs text-blue-700">With Status</div>
               </CardContent>
             </Card>
           </div>
 
           {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            {/* Left Column - Cases */}
-            <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
+          <div className="space-y-4">
               {/* Search and Filters */}
               <Card className="border border-indigo-100 shadow-sm bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-4 space-y-4">
@@ -461,17 +504,59 @@ export default function TrimbakeshwarDashboard() {
                                 <div className="text-sm">{case_.respondent}</div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="secondary" className="text-xs">
-                                  {case_.received || "प्राप्त"}
-                                </Badge>
+                                <Select
+                                  value={receivedStatuses[case_.caseNumber] || case_.received || "-"}
+                                  onValueChange={(value) => handleReceivedUpdate(case_.caseNumber, value)}
+                                >
+                                  <SelectTrigger className="w-20 h-8 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="प्राप्त">प्राप्त</SelectItem>
+                                    <SelectItem value="-">-</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </TableCell>
                               <TableCell>
-                                <Input
-                                  value={editableStatuses[case_.caseNumber] || case_.status || ""}
-                                  onChange={(e) => handleStatusUpdate(case_.caseNumber, e.target.value)}
-                                  placeholder="Enter status..."
-                                  className="text-xs h-8 min-w-[120px]"
-                                />
+                                <Dialog
+                                  open={statusDialogOpen[case_.caseNumber] || false}
+                                  onOpenChange={(open) => {
+                                    if (!open) closeStatusDialog(case_.caseNumber)
+                                  }}
+                                >
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs h-8 min-w-[120px] justify-start"
+                                      onClick={() => openStatusDialog(case_.caseNumber, case_.status)}
+                                    >
+                                      {(editableStatuses[case_.caseNumber] || case_.status || "Enter status...").substring(0, 15)}
+                                      {(editableStatuses[case_.caseNumber] || case_.status || "").length > 15 ? "..." : ""}
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Status - Case #{case_.caseNumber}</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                      <Textarea
+                                        value={tempStatusValue}
+                                        onChange={(e) => setTempStatusValue(e.target.value)}
+                                        placeholder="Enter detailed status information..."
+                                        className="min-h-[100px]"
+                                      />
+                                    </div>
+                                    <div className="flex justify-end gap-2">
+                                      <Button variant="outline" onClick={() => closeStatusDialog(case_.caseNumber)}>
+                                        Cancel
+                                      </Button>
+                                      <Button onClick={() => saveStatusDialog(case_.caseNumber)}>
+                                        Save
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
                               </TableCell>
                             </TableRow>
                           )
@@ -544,38 +629,6 @@ export default function TrimbakeshwarDashboard() {
                   )}
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="space-y-4 order-1 lg:order-2">
-              {/* Recent Cases */}
-              <Card className="border border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50/30 to-blue-50/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2 text-indigo-900">
-                    <Bell className="h-4 w-4" />
-                    Recent Cases
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {filteredCases.slice(0, 3).map((case_) => (
-                      <div key={case_.caseNumber} className="p-2 bg-indigo-100/50 rounded border border-indigo-200">
-                        <div className="font-medium text-xs text-indigo-900">Case #{case_.caseNumber}</div>
-                        <div className="text-xs text-indigo-700 mt-1">
-                          {case_.caseType} - {case_.status}
-                        </div>
-                      </div>
-                    ))}
-                    {filteredCases.length === 0 && (
-                      <div className="text-center py-3 text-indigo-600">
-                        <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-green-500" />
-                        <p className="text-xs">No cases found</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </div>

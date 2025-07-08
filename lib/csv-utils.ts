@@ -65,6 +65,7 @@ export function parseCsvToCases(csvText: string): CaseData[] {
           break
         case "custom_status":
         case "custom status":
+        case "editable_status":
           caseData.status = value
           break
         case "taluka":
@@ -82,7 +83,7 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         year: caseData.year || new Date(caseData.date).getFullYear().toString(),
         appellant: caseData.appellant || "Unknown",
         respondent: caseData.respondent || "Unknown",
-        received: caseData.received || "प्राप्त",  // Default to "प्राप्त" for received status
+        received: caseData.received || "-",  // Default to "-" if no received status
         status: caseData.status || "",  // Default to empty for editable status
         taluka: caseData.taluka || "Unknown",
         filedDate: caseData.date,
