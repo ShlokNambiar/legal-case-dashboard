@@ -64,32 +64,7 @@ export default function HomePage() {
           </Card>
         </div>
 
-        {/* Information Section */}
-        <Card className="border border-gray-200 shadow-sm">
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">System Features</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Case Management</h3>
-                <ul className="space-y-1">
-                  <li>• Real-time case tracking</li>
-                  <li>• Hearing date management</li>
-                  <li>• Status updates and notifications</li>
-                  <li>• Document management</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Dashboard Features</h3>
-                <ul className="space-y-1">
-                  <li>• Calendar view of hearings</li>
-                  <li>• Urgent reminder alerts</li>
-                  <li>• Advanced search and filtering</li>
-                  <li>• Export capabilities</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
 
       </div>

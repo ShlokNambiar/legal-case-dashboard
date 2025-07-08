@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import {
   Search,
   Calendar,
@@ -12,8 +12,6 @@ import {
   Scale,
   FileCheck,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   SortAsc,
   SortDesc,
   RefreshCw,
@@ -30,155 +28,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useCases } from "@/hooks/use-cases"
 
-// Calendar component
-function CalendarWidget({ cases }: { cases: any[] }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
 
-  const currentMonth = currentDate.getMonth()
-  const currentYear = currentDate.getFullYear()
-
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
-  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
-  const daysInMonth = lastDayOfMonth.getDate()
-  const startingDayOfWeek = firstDayOfMonth.getDay()
-
-  const monthEvents = useMemo(() => {
-    const events: { [key: string]: Array<{ type: "case"; case: any }> } = {}
-
-    cases.forEach((case_) => {
-      const caseDate = new Date(case_.date)
-
-      if (caseDate.getMonth() === currentMonth && caseDate.getFullYear() === currentYear) {
-        const dateKey = caseDate.getDate().toString()
-        if (!events[dateKey]) events[dateKey] = []
-        events[dateKey].push({ type: "case", case: case_ })
-      }
-    })
-
-    return events
-  }, [cases, currentMonth, currentYear])
-
-  const navigateMonth = (direction: "prev" | "next") => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev)
-      if (direction === "prev") {
-        newDate.setMonth(prev.getMonth() - 1)
-      } else {
-        newDate.setMonth(prev.getMonth() + 1)
-      }
-      return newDate
-    })
-  }
-
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ]
-
-  const dayNames = ["S", "M", "T", "W", "T", "F", "S"]
-
-  return (
-    <Card className="border border-orange-100 bg-gradient-to-br from-orange-50/30 to-amber-50/30">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold text-orange-900">
-            {monthNames[currentMonth]} {currentYear}
-          </CardTitle>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth("prev")}
-              className="h-7 w-7 p-0 hover:bg-orange-100"
-            >
-              <ChevronLeft className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateMonth("next")}
-              className="h-7 w-7 p-0 hover:bg-orange-100"
-            >
-              <ChevronRight className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {dayNames.map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-orange-600 py-1">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: startingDayOfWeek }, (_, i) => (
-            <div key={`empty-${i}`} className="h-8"></div>
-          ))}
-
-          {Array.from({ length: daysInMonth }, (_, i) => {
-            const day = i + 1
-            const dayEvents = monthEvents[day.toString()] || []
-            const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString()
-            const hasEvents = dayEvents.length > 0
-
-            return (
-              <Tooltip key={day}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`h-8 flex items-center justify-center text-xs cursor-pointer hover:bg-orange-100 rounded relative ${
-                      isToday
-                        ? "bg-orange-200 text-orange-800 font-semibold"
-                        : hasEvents
-                          ? "bg-orange-100 text-orange-700"
-                          : ""
-                    }`}
-                  >
-                    {day}
-                    {hasEvents && <div className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-current"></div>}
-                  </div>
-                </TooltipTrigger>
-                {dayEvents.length > 0 && (
-                  <TooltipContent>
-                    <div className="text-sm space-y-1">
-                      {dayEvents.map((event, idx) => (
-                        <div key={idx}>
-                          <div className="font-medium">Case #{event.case.caseNumber}</div>
-                          <div className="text-xs">
-                            {event.case.caseType} - {event.case.status}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            )
-          })}
-        </div>
-
-        <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-orange-100 text-xs text-orange-600">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-orange-200 rounded"></div>
-            <span>Case Dates</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export default function IgatpuriDashboard() {
   const { cases, loading, error, lastUpdated, updateCasesFromCsv, refreshCases } = useCases()
@@ -686,9 +536,6 @@ export default function IgatpuriDashboard() {
 
             {/* Right Sidebar */}
             <div className="space-y-4 order-1 lg:order-2">
-              {/* Calendar */}
-              <CalendarWidget cases={filteredCases} />
-
               {/* Recent Cases */}
               <Card className="border border-orange-100 shadow-sm bg-gradient-to-br from-orange-50/30 to-amber-50/30">
                 <CardHeader className="pb-3">
