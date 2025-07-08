@@ -358,7 +358,7 @@ export default function TrimbakeshwarDashboard() {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-indigo-50/20 to-blue-50/20">
-        <div className="mx-auto max-w-7xl space-y-4 p-4">
+        <div className="mx-auto max-w-7xl space-y-4 p-3 sm:p-4">
           {/* Header */}
           <div className="text-center space-y-2 pb-4 border-b bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-sm border-indigo-100">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -445,7 +445,7 @@ export default function TrimbakeshwarDashboard() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 h-4 w-4" />
                     <Input
-                      placeholder="Search by case number, appellant, respondent, or type..."
+                      placeholder="Search cases..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 h-10 border-indigo-200 focus:border-indigo-500 bg-white/50"
@@ -518,7 +518,7 @@ export default function TrimbakeshwarDashboard() {
                   </div>
 
                   {/* Results Info */}
-                  <div className="flex items-center justify-between text-sm text-indigo-700">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm text-indigo-700">
                     <span>
                       Showing {paginatedCases.length} of {filteredCases.length} cases
                     </span>
@@ -529,8 +529,8 @@ export default function TrimbakeshwarDashboard() {
               {/* Cases Table */}
               <Card className="border border-indigo-100 shadow-sm bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table>
+                  <div className="overflow-x-auto min-w-full">
+                    <Table className="min-w-[800px]">
                       <TableHeader>
                         <TableRow className="border-b border-indigo-100">
                           <TableHead className="font-semibold text-indigo-900">
@@ -614,7 +614,7 @@ export default function TrimbakeshwarDashboard() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between p-4 border-t border-indigo-100">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-indigo-100">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-indigo-700">
                           Page {currentPage} of {totalPages}
@@ -637,15 +637,16 @@ export default function TrimbakeshwarDashboard() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 sm:gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="border-indigo-200 hover:bg-indigo-50"
+                          className="border-indigo-200 hover:bg-indigo-50 text-xs sm:text-sm px-2 sm:px-3"
                         >
-                          Previous
+                          <span className="hidden sm:inline">Previous</span>
+                          <span className="sm:hidden">Prev</span>
                         </Button>
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const page = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
@@ -655,7 +656,7 @@ export default function TrimbakeshwarDashboard() {
                               variant={page === currentPage ? "default" : "outline"}
                               size="sm"
                               onClick={() => handlePageChange(page)}
-                              className={`w-8 h-8 p-0 ${page === currentPage ? "bg-indigo-600 hover:bg-indigo-700" : "border-indigo-200 hover:bg-indigo-50"}`}
+                              className={`w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs sm:text-sm ${page === currentPage ? "bg-indigo-600 hover:bg-indigo-700" : "border-indigo-200 hover:bg-indigo-50"}`}
                             >
                               {page}
                             </Button>
@@ -666,7 +667,7 @@ export default function TrimbakeshwarDashboard() {
                           size="sm"
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="border-indigo-200 hover:bg-indigo-50"
+                          className="border-indigo-200 hover:bg-indigo-50 text-xs sm:text-sm px-2 sm:px-3"
                         >
                           Next
                         </Button>
