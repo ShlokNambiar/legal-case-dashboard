@@ -68,29 +68,53 @@ export async function initializeDatabase() {
   }
 }
 
-// Insert or update cases
+// Insert or update cases (SAFE - no data deletion)
 export async function upsertCases(cases: CaseRecord[]) {
   try {
-    // Clear existing cases (for now - in production you might want to do incremental updates)
-    await sql`DELETE FROM legal_cases`
+    let insertedCount = 0
+    let updatedCount = 0
 
-    // Insert new cases
+    // Process each case individually with proper UPSERT
     for (const case_ of cases) {
-      await sql`
-        INSERT INTO legal_cases (
-          sr_no, case_number, case_type, applicant_name, respondent_name,
-          received, next_date, status, remarks, taluka
-        ) VALUES (
-          ${case_.sr_no}, ${case_.case_number}, ${case_.case_type || 'अपील'},
-          ${case_.applicant_name}, ${case_.respondent_name},
-          ${case_.received || 'प्राप्त'}, ${case_.next_date || '2025-07-17'},
-          ${case_.status}, ${case_.remarks}, ${case_.taluka}
-        )
+      // Check if case already exists
+      const existingCase = await sql`
+        SELECT id, status, received, next_date FROM legal_cases
+        WHERE case_number = ${case_.case_number}
       `
+
+      if (existingCase.length > 0) {
+        // Update existing case (preserve user edits for status, received, next_date)
+        await sql`
+          UPDATE legal_cases SET
+            sr_no = ${case_.sr_no},
+            case_type = ${case_.case_type || 'अपील'},
+            applicant_name = ${case_.applicant_name},
+            respondent_name = ${case_.respondent_name},
+            remarks = ${case_.remarks || ''},
+            taluka = ${case_.taluka},
+            updated_at = CURRENT_TIMESTAMP
+          WHERE case_number = ${case_.case_number}
+        `
+        updatedCount++
+      } else {
+        // Insert new case
+        await sql`
+          INSERT INTO legal_cases (
+            sr_no, case_number, case_type, applicant_name, respondent_name,
+            received, next_date, status, remarks, taluka
+          ) VALUES (
+            ${case_.sr_no}, ${case_.case_number}, ${case_.case_type || 'अपील'},
+            ${case_.applicant_name}, ${case_.respondent_name},
+            ${case_.received || 'प्राप्त'}, ${case_.next_date || '2025-07-17'},
+            ${case_.status || ''}, ${case_.remarks || ''}, ${case_.taluka}
+          )
+        `
+        insertedCount++
+      }
     }
 
-    console.log(`Successfully inserted ${cases.length} cases`)
-    return { success: true, count: cases.length }
+    console.log(`Successfully processed ${cases.length} cases: ${insertedCount} inserted, ${updatedCount} updated`)
+    return { success: true, count: cases.length, inserted: insertedCount, updated: updatedCount }
   } catch (error) {
     console.error('Error upserting cases:', error)
     return { success: false, error: error.message }

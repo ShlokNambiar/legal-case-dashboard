@@ -123,19 +123,31 @@ export default function TrimbakeshwarDashboard() {
   // Statistics calculations
   const stats = useMemo(() => {
     const total = filteredCases.length
-    const receivedCount = filteredCases.filter((c) =>
-      (receivedStatuses[c.caseNumber] || c.received) === "प्राप्त"
-    ).length
-    const nextDateCount = filteredCases.filter((c) =>
-      (nextDates[c.caseNumber] || c.nextDate || "").trim() !== ""
-    ).length
+
+    // Find the most common next date (or earliest upcoming date)
+    const nextDateCounts = new Map<string, number>()
+    filteredCases.forEach((c) => {
+      const nextDate = nextDates[c.caseNumber] || c.nextDate || ""
+      if (nextDate.trim() !== "") {
+        nextDateCounts.set(nextDate, (nextDateCounts.get(nextDate) || 0) + 1)
+      }
+    })
+
+    // Get the most common next date, or default to "17-07-2025"
+    let mostCommonNextDate = "17-07-2025"
+    let maxCount = 0
+    for (const [date, count] of nextDateCounts.entries()) {
+      if (count > maxCount) {
+        maxCount = count
+        mostCommonNextDate = date
+      }
+    }
 
     return {
       total,
-      received: receivedCount,
-      nextDate: nextDateCount
+      nextDate: mostCommonNextDate
     }
-  }, [filteredCases, receivedStatuses, nextDates])
+  }, [filteredCases, nextDates])
 
   // Handle sorting
   const handleSort = (field: string) => {
@@ -401,18 +413,11 @@ export default function TrimbakeshwarDashboard() {
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <Card className="border border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50/50 to-white">
               <CardContent className="p-3 sm:p-4 text-center">
                 <div className="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">{stats.total}</div>
                 <div className="text-xs text-indigo-700">Total Cases</div>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-green-100 shadow-sm bg-gradient-to-br from-green-50/50 to-white">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">{stats.received}</div>
-                <div className="text-xs text-green-700">Received</div>
               </CardContent>
             </Card>
 
