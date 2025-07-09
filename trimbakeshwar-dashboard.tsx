@@ -28,6 +28,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { updateCaseField } from "@/lib/api"
 import { useCases } from "@/hooks/use-cases"
 
 
@@ -153,29 +154,63 @@ export default function TrimbakeshwarDashboard() {
   }
 
   // Handle status update
-  const handleStatusUpdate = (caseNumber: string, newStatus: string) => {
+  const handleStatusUpdate = async (caseNumber: string, newStatus: string) => {
+    // Update local state immediately for responsive UI
     setEditableStatuses(prev => ({
       ...prev,
       [caseNumber]: newStatus
     }))
-    // Here you could also make an API call to persist the status change
-    // For now, we'll just store it in local state
+
+    // Persist to database
+    try {
+      const result = await updateCaseField(caseNumber, 'status', newStatus)
+      if (!result.success) {
+        console.error('Failed to update status:', result.error)
+        // Optionally show a toast notification here
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+    }
   }
 
   // Handle received status update
-  const handleReceivedUpdate = (caseNumber: string, newReceived: string) => {
+  const handleReceivedUpdate = async (caseNumber: string, newReceived: string) => {
+    // Update local state immediately for responsive UI
     setReceivedStatuses(prev => ({
       ...prev,
       [caseNumber]: newReceived
     }))
+
+    // Persist to database
+    try {
+      const result = await updateCaseField(caseNumber, 'received', newReceived)
+      if (!result.success) {
+        console.error('Failed to update received status:', result.error)
+        // Optionally show a toast notification here
+      }
+    } catch (error) {
+      console.error('Error updating received status:', error)
+    }
   }
 
   // Handle next date update
-  const handleNextDateUpdate = (caseNumber: string, newDate: string) => {
+  const handleNextDateUpdate = async (caseNumber: string, newDate: string) => {
+    // Update local state immediately for responsive UI
     setNextDates(prev => ({
       ...prev,
       [caseNumber]: newDate
     }))
+
+    // Persist to database
+    try {
+      const result = await updateCaseField(caseNumber, 'next_date', newDate)
+      if (!result.success) {
+        console.error('Failed to update next date:', result.error)
+        // Optionally show a toast notification here
+      }
+    } catch (error) {
+      console.error('Error updating next date:', error)
+    }
   }
 
   // Handle status dialog
