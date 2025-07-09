@@ -508,11 +508,11 @@ export default function IgatpuriDashboard() {
               <Card className="border border-orange-100 shadow-sm bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-0">
                   <div className="overflow-x-auto min-w-full">
-                    <Table>
+                    <Table className="min-w-[800px]">
                       <TableHeader>
                         <TableRow className="border-b border-orange-100">
-                          <TableHead className="font-semibold text-orange-900">Case Type</TableHead>
-                          <TableHead className="font-semibold text-orange-900">
+                          <TableHead className="font-semibold text-orange-900 min-w-[100px]">Case Type</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[140px]">
                             <Button
                               variant="ghost"
                               onClick={() => handleSort("caseNumber")}
@@ -527,11 +527,11 @@ export default function IgatpuriDashboard() {
                                 ))}
                             </Button>
                           </TableHead>
-                          <TableHead className="font-semibold text-orange-900">Appellant</TableHead>
-                          <TableHead className="font-semibold text-orange-900">Respondent</TableHead>
-                          <TableHead className="font-semibold text-orange-900">Received</TableHead>
-                          <TableHead className="font-semibold text-orange-900">Next Date</TableHead>
-                          <TableHead className="font-semibold text-orange-900">Status</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[120px]">Appellant</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[120px]">Respondent</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[80px]">Received</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[140px]">Next Date</TableHead>
+                          <TableHead className="font-semibold text-orange-900 min-w-[120px]">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -541,26 +541,26 @@ export default function IgatpuriDashboard() {
 
                           return (
                             <TableRow key={`${case_.caseNumber}-${index}`} className="hover:bg-orange-50/50">
-                              <TableCell>
-                                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700">
+                              <TableCell className="p-2 sm:p-4">
+                                <Badge variant="outline" className="text-xs border-orange-200 text-orange-700 whitespace-nowrap">
                                   {case_.caseType}
                                 </Badge>
                               </TableCell>
-                              <TableCell>
-                                <div className="font-semibold text-sm">{case_.caseNumber}</div>
+                              <TableCell className="p-2 sm:p-4">
+                                <div className="font-semibold text-sm break-all">{case_.caseNumber}</div>
                               </TableCell>
-                              <TableCell>
-                                <div className="font-medium text-sm">{case_.appellant}</div>
+                              <TableCell className="p-2 sm:p-4">
+                                <div className="font-medium text-sm break-words">{case_.appellant}</div>
                               </TableCell>
-                              <TableCell>
-                                <div className="text-sm">{case_.respondent}</div>
+                              <TableCell className="p-2 sm:p-4">
+                                <div className="text-sm break-words">{case_.respondent}</div>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="p-2 sm:p-4">
                                 <Select
                                   value={receivedStatuses[case_.caseNumber] || case_.received || "-"}
                                   onValueChange={(value) => handleReceivedUpdate(case_.caseNumber, value)}
                                 >
-                                  <SelectTrigger className="w-20 h-8 text-xs">
+                                  <SelectTrigger className="w-full min-w-[70px] h-8 text-xs border-orange-200">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -569,12 +569,12 @@ export default function IgatpuriDashboard() {
                                   </SelectContent>
                                 </Select>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="p-2 sm:p-4">
                                 <Input
                                   type="date"
                                   value={nextDates[case_.caseNumber] || case_.nextDate || "2025-07-17"}
                                   onChange={(e) => handleNextDateUpdate(case_.caseNumber, e.target.value)}
-                                  className="w-32 h-8 text-xs"
+                                  className="w-full min-w-[130px] h-8 text-xs border-orange-200 focus:border-orange-400"
                                 />
                               </TableCell>
                               <TableCell>

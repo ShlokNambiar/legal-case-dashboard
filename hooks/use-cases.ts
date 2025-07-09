@@ -96,6 +96,23 @@ export function useCases() {
     loadCases()
   }, [])
 
+  // Load from localStorage on component mount
+  useEffect(() => {
+    const savedCases = localStorage.getItem("legal-cases")
+    if (savedCases) {
+      try {
+        const parsed = JSON.parse(savedCases)
+        if (parsed.cases && Array.isArray(parsed.cases)) {
+          setCases(parsed.cases)
+          setLastUpdated(new Date(parsed.lastUpdated))
+          console.log(`Loaded ${parsed.cases.length} cases from localStorage`)
+        }
+      } catch (error) {
+        console.error("Error parsing saved cases:", error)
+      }
+    }
+  }, [])
+
   const loadCases = async () => {
     try {
       setLoading(true)

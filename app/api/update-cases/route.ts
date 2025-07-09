@@ -146,12 +146,15 @@ async function processCsvText(csvText: string) {
     try {
       await initializeDatabase()
 
-      // Convert cases to database format
+      // Convert cases to database format with new structure
       const dbCases = cases.map(case_ => ({
         sr_no: case_["Sr No"] || "",
         case_number: case_["Case Number"] || "",
-        applicant_name: case_["Applicant Name"] || "",
-        respondent_name: case_["Respondent Name"] || "",
+        case_type: case_["Case Type"] || "",
+        applicant_name: case_["Appellant"] || case_["Applicant Name"] || "",
+        respondent_name: case_["Respondent"] || case_["Respondent Name"] || "",
+        received: case_["Received"] || "",
+        next_date: case_["Next Date"] || "",
         status: case_["Status"] || "",
         remarks: case_["Remarks"] || "",
         taluka: case_.taluka || "Unknown"
@@ -277,22 +280,16 @@ export async function GET() {
     // Convert database format back to dashboard format (CaseData interface)
     const dashboardCases = cases.map(case_ => ({
       date: case_.created_at || new Date().toISOString(),
-      caseType: "Legal Case",
+      caseType: case_.case_type || "अपील",
       caseNumber: case_.case_number,
-      year: case_.case_number ? case_.case_number.split('/')[2] || "2023" : "2023",
       appellant: case_.applicant_name,
       respondent: case_.respondent_name,
-      status: case_.status,
+      received: case_.received || "प्राप्त",
+      nextDate: case_.next_date || "2025-07-17",
+      status: case_.status || "",
       taluka: case_.taluka,
       filedDate: case_.created_at || new Date().toISOString(),
-      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString(),
-      // Additional fields for dashboard compatibility
-      caseId: case_.case_number,
-      priority: case_.status === "प्राप्त" ? "Normal" : "High",
-      nextAction: case_.status === "प्राप्त" ? "Review" : "Follow up",
-      hearingDate: case_.created_at || new Date().toISOString(),
-      reminderDate: case_.created_at || new Date().toISOString(),
-      remarks: case_.remarks
+      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString()
     }))
 
     const breakdown = {
