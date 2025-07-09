@@ -2,10 +2,10 @@ export interface CaseData {
   date: string
   caseType: string
   caseNumber: string
-  year: string
   appellant: string
   respondent: string
   received: string  // This will store the original "प्राप्त" or similar values
+  nextDate: string  // New field for next hearing date
   status: string    // This will be the new editable status field
   taluka: string
   filedDate: string
@@ -47,22 +47,20 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         case "casenumber":
           caseData.caseNumber = value
           break
-        case "year":
-          caseData.year = value
-          break
         case "appellant":
           caseData.appellant = value
           break
         case "respondent":
           caseData.respondent = value
           break
-        case "status":
-          // The original CSV "status" field becomes "received"
-          caseData.received = value
-          break
         case "received":
           caseData.received = value
           break
+        case "next date":
+        case "nextdate":
+          caseData.nextDate = value
+          break
+        case "status":
         case "custom_status":
         case "custom status":
         case "editable_status":
@@ -80,10 +78,10 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         date: caseData.date,
         caseType: caseData.caseType,
         caseNumber: caseData.caseNumber,
-        year: caseData.year || new Date(caseData.date).getFullYear().toString(),
         appellant: caseData.appellant || "Unknown",
         respondent: caseData.respondent || "Unknown",
         received: caseData.received || "प्राप्त",  // Default to "प्राप्त" if no received status
+        nextDate: caseData.nextDate || "2025-07-17",  // Default to 17th July 2025
         status: caseData.status || "",  // Default to empty for editable status
         taluka: caseData.taluka || "Unknown",
         filedDate: caseData.date,

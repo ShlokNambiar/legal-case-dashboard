@@ -38,13 +38,13 @@ export default function TrimbakeshwarDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("All Types")
   const [selectedStatus, setSelectedStatus] = useState("All Statuses")
-  const [selectedYear, setSelectedYear] = useState("All Years")
   const [currentPage, setCurrentPage] = useState(1)
   const [sortField, setSortField] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const [casesPerPage, setCasesPerPage] = useState(10)
   const [editableStatuses, setEditableStatuses] = useState<{[key: string]: string}>({})
   const [receivedStatuses, setReceivedStatuses] = useState<{[key: string]: string}>({})
+  const [nextDates, setNextDates] = useState<{[key: string]: string}>({})
   const [statusDialogOpen, setStatusDialogOpen] = useState<{[key: string]: boolean}>({})
   const [tempStatusValue, setTempStatusValue] = useState("")
   const [currentEditingCase, setCurrentEditingCase] = useState<string | null>(null)
@@ -53,8 +53,7 @@ export default function TrimbakeshwarDashboard() {
     caseNumber: "",
     appellant: "",
     respondent: "",
-    caseType: "Legal Case",
-    year: new Date().getFullYear().toString()
+    caseType: "अपील"
   })
 
   // Filter cases for Trimbakeshwar only
@@ -74,14 +73,7 @@ export default function TrimbakeshwarDashboard() {
     return statusList
   }, [trimbakeshwarCases, receivedStatuses])
 
-  const years = useMemo(() => {
-    const yearList = ["All Years", ...new Set(trimbakeshwarCases.map((c) => c.year).filter(Boolean))]
-    return yearList.sort((a, b) => {
-      if (a === "All Years") return -1
-      if (b === "All Years") return 1
-      return b.localeCompare(a) // Sort years in descending order
-    })
-  }, [trimbakeshwarCases])
+
 
   // Get today's date for comparison
   const today = new Date()
@@ -98,9 +90,8 @@ export default function TrimbakeshwarDashboard() {
       const matchesType = selectedType === "All Types" || case_.caseType === selectedType
       const matchesStatus = selectedStatus === "All Statuses" ||
         (receivedStatuses[case_.caseNumber] || case_.received) === selectedStatus
-      const matchesYear = selectedYear === "All Years" || case_.year === selectedYear
 
-      return matchesSearch && matchesType && matchesStatus && matchesYear
+      return matchesSearch && matchesType && matchesStatus
     })
 
     // Apply sorting
@@ -134,20 +125,16 @@ export default function TrimbakeshwarDashboard() {
     const receivedCount = filteredCases.filter((c) =>
       (receivedStatuses[c.caseNumber] || c.received) === "प्राप्त"
     ).length
-    const pendingCount = filteredCases.filter((c) =>
-      (receivedStatuses[c.caseNumber] || c.received) === "-"
-    ).length
-    const withStatusCount = filteredCases.filter((c) =>
-      (editableStatuses[c.caseNumber] || c.status || "").trim() !== ""
+    const nextDateCount = filteredCases.filter((c) =>
+      (nextDates[c.caseNumber] || c.nextDate || "").trim() !== ""
     ).length
 
     return {
       total,
       received: receivedCount,
-      pending: pendingCount,
-      withStatus: withStatusCount
+      nextDate: nextDateCount
     }
-  }, [filteredCases, receivedStatuses, editableStatuses])
+  }, [filteredCases, receivedStatuses, nextDates])
 
   // Handle sorting
   const handleSort = (field: string) => {
@@ -183,6 +170,14 @@ export default function TrimbakeshwarDashboard() {
     }))
   }
 
+  // Handle next date update
+  const handleNextDateUpdate = (caseNumber: string, newDate: string) => {
+    setNextDates(prev => ({
+      ...prev,
+      [caseNumber]: newDate
+    }))
+  }
+
   // Handle status dialog
   const openStatusDialog = (caseNumber: string, currentStatus: string) => {
     setCurrentEditingCase(caseNumber)
@@ -212,10 +207,10 @@ export default function TrimbakeshwarDashboard() {
       date: new Date().toISOString().split("T")[0],
       caseType: newCase.caseType,
       caseNumber: newCase.caseNumber,
-      year: newCase.year,
       appellant: newCase.appellant,
       respondent: newCase.respondent,
       received: "प्राप्त",
+      nextDate: "2025-07-17",
       status: "",
       taluka: "Trimbakeshwar",
       filedDate: new Date().toISOString().split("T")[0],
@@ -231,8 +226,7 @@ export default function TrimbakeshwarDashboard() {
         caseNumber: "",
         appellant: "",
         respondent: "",
-        caseType: "Legal Case",
-        year: new Date().getFullYear().toString()
+        caseType: "अपील"
       })
       setAddCaseDialogOpen(false)
 
@@ -279,7 +273,6 @@ export default function TrimbakeshwarDashboard() {
     setSearchTerm("")
     setSelectedType("All Types")
     setSelectedStatus("All Statuses")
-    setSelectedYear("All Years")
     setCurrentPage(1)
     setSortField(null)
   }
@@ -373,7 +366,7 @@ export default function TrimbakeshwarDashboard() {
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <Card className="border border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50/50 to-white">
               <CardContent className="p-3 sm:p-4 text-center">
                 <div className="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">{stats.total}</div>
@@ -388,17 +381,10 @@ export default function TrimbakeshwarDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border border-amber-100 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
-              <CardContent className="p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-amber-600 mb-1">{stats.pending}</div>
-                <div className="text-xs text-amber-700">Pending</div>
-              </CardContent>
-            </Card>
-
             <Card className="border border-blue-100 shadow-sm bg-gradient-to-br from-blue-50/50 to-white">
               <CardContent className="p-3 sm:p-4 text-center">
-                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{stats.withStatus}</div>
-                <div className="text-xs text-blue-700">With Status</div>
+                <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{stats.nextDate}</div>
+                <div className="text-xs text-blue-700">Next Date</div>
               </CardContent>
             </Card>
           </div>
@@ -448,18 +434,7 @@ export default function TrimbakeshwarDashboard() {
                         </SelectContent>
                       </Select>
 
-                      <Select value={selectedYear} onValueChange={setSelectedYear}>
-                        <SelectTrigger className="h-9 text-sm border-indigo-200 bg-white/50 min-w-[100px]">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {years.map((year) => (
-                            <SelectItem key={year} value={year}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
@@ -529,21 +504,6 @@ export default function TrimbakeshwarDashboard() {
                     <Table className="min-w-[800px]">
                       <TableHeader>
                         <TableRow className="border-b border-indigo-100">
-                          <TableHead className="font-semibold text-indigo-900">
-                            <Button
-                              variant="ghost"
-                              onClick={() => handleSort("date")}
-                              className="h-auto p-0 font-semibold hover:bg-indigo-50"
-                            >
-                              Date
-                              {sortField === "date" &&
-                                (sortDirection === "asc" ? (
-                                  <SortAsc className="ml-1 h-3 w-3" />
-                                ) : (
-                                  <SortDesc className="ml-1 h-3 w-3" />
-                                ))}
-                            </Button>
-                          </TableHead>
                           <TableHead className="font-semibold text-indigo-900">Case Type</TableHead>
                           <TableHead className="font-semibold text-indigo-900">
                             <Button
@@ -560,10 +520,10 @@ export default function TrimbakeshwarDashboard() {
                                 ))}
                             </Button>
                           </TableHead>
-                          <TableHead className="font-semibold text-indigo-900">Year</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Appellant</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Respondent</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Received</TableHead>
+                          <TableHead className="font-semibold text-indigo-900">Next Date</TableHead>
                           <TableHead className="font-semibold text-indigo-900">Status</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -574,9 +534,6 @@ export default function TrimbakeshwarDashboard() {
 
                           return (
                             <TableRow key={`${case_.caseNumber}-${index}`} className="hover:bg-indigo-50/50">
-                              <TableCell className="font-medium">
-                                <div className="font-semibold text-sm">{formatDate(case_.date)}</div>
-                              </TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="text-xs border-indigo-200 text-indigo-700">
                                   {case_.caseType}
@@ -584,9 +541,6 @@ export default function TrimbakeshwarDashboard() {
                               </TableCell>
                               <TableCell>
                                 <div className="font-semibold text-sm">{case_.caseNumber}</div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="text-sm">{case_.year}</div>
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium text-sm">{case_.appellant}</div>
@@ -607,6 +561,14 @@ export default function TrimbakeshwarDashboard() {
                                     <SelectItem value="-">-</SelectItem>
                                   </SelectContent>
                                 </Select>
+                              </TableCell>
+                              <TableCell>
+                                <Input
+                                  type="date"
+                                  value={nextDates[case_.caseNumber] || case_.nextDate || "2025-07-17"}
+                                  onChange={(e) => handleNextDateUpdate(case_.caseNumber, e.target.value)}
+                                  className="w-32 h-8 text-xs"
+                                />
                               </TableCell>
                               <TableCell>
                                 <Dialog
@@ -732,6 +694,27 @@ export default function TrimbakeshwarDashboard() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="caseType" className="text-right text-sm font-medium">
+                Case Type *
+              </label>
+              <Select
+                value={newCase.caseType}
+                onValueChange={(value) => setNewCase(prev => ({ ...prev, caseType: value }))}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="अपील">अपील</SelectItem>
+                  <SelectItem value="रिव्हीजन">रिव्हीजन</SelectItem>
+                  <SelectItem value="मामलेदार कोर्ट">मामलेदार कोर्ट</SelectItem>
+                  <SelectItem value="गौणखनिज">गौणखनिज</SelectItem>
+                  <SelectItem value="अतिक्रमण">अतिक्रमण</SelectItem>
+                  <SelectItem value="कुळ कायदा">कुळ कायदा</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="caseNumber" className="text-right text-sm font-medium">
                 Case Number *
               </label>
@@ -765,37 +748,6 @@ export default function TrimbakeshwarDashboard() {
                 onChange={(e) => setNewCase(prev => ({ ...prev, respondent: e.target.value }))}
                 className="col-span-3"
                 placeholder="Respondent name"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="caseType" className="text-right text-sm font-medium">
-                Case Type
-              </label>
-              <Select
-                value={newCase.caseType}
-                onValueChange={(value) => setNewCase(prev => ({ ...prev, caseType: value }))}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Legal Case">Legal Case</SelectItem>
-                  <SelectItem value="Appeal">Appeal</SelectItem>
-                  <SelectItem value="Civil Case">Civil Case</SelectItem>
-                  <SelectItem value="Criminal Case">Criminal Case</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="year" className="text-right text-sm font-medium">
-                Year
-              </label>
-              <Input
-                id="year"
-                value={newCase.year}
-                onChange={(e) => setNewCase(prev => ({ ...prev, year: e.target.value }))}
-                className="col-span-3"
-                placeholder="2024"
               />
             </div>
           </div>

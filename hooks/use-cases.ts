@@ -3,8 +3,87 @@
 import { useState, useEffect } from "react"
 import { type CaseData, parseCsvToCases } from "@/lib/csv-utils"
 
-// All mock data has been cleared
-const sampleCases: CaseData[] = []
+// Sample data with new structure
+const sampleCases: CaseData[] = [
+  {
+    date: "2024-01-15",
+    caseType: "अपील",
+    caseNumber: "अपील/150/2023",
+    appellant: "लक्ष्मीबाई शेलार",
+    respondent: "सुनीता शेलार",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Igatpuri",
+    filedDate: "2024-01-15",
+    lastUpdate: "2024-01-15"
+  },
+  {
+    date: "2024-01-16",
+    caseType: "रिव्हीजन",
+    caseNumber: "रिव्हीजन/139/2023",
+    appellant: "चंद्रबाई हंबीर",
+    respondent: "गंगुबाई आघाण",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Igatpuri",
+    filedDate: "2024-01-16",
+    lastUpdate: "2024-01-16"
+  },
+  {
+    date: "2024-01-17",
+    caseType: "मामलेदार कोर्ट",
+    caseNumber: "मामलेदार/131/2023",
+    appellant: "अरुण पोरजे",
+    respondent: "मनोज चौधरी",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Trimbakeshwar",
+    filedDate: "2024-01-17",
+    lastUpdate: "2024-01-17"
+  },
+  {
+    date: "2024-01-18",
+    caseType: "गौणखनिज",
+    caseNumber: "गौणखनिज/113/2023",
+    appellant: "केरुजी काळे",
+    respondent: "कोंडाजी भालेराव",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Trimbakeshwar",
+    filedDate: "2024-01-18",
+    lastUpdate: "2024-01-18"
+  },
+  {
+    date: "2024-01-19",
+    caseType: "अतिक्रमण",
+    caseNumber: "अतिक्रमण/104/2023",
+    appellant: "रामभाऊ ढोन्नर",
+    respondent: "अंबाबाई ढोन्नर उर्फ बिन्नर",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Igatpuri",
+    filedDate: "2024-01-19",
+    lastUpdate: "2024-01-19"
+  },
+  {
+    date: "2024-01-20",
+    caseType: "कुळ कायदा",
+    caseNumber: "कुळ/90/2023",
+    appellant: "अनुसया मालुंजकर",
+    respondent: "ओम मालुंजकर",
+    received: "प्राप्त",
+    nextDate: "2025-07-17",
+    status: "",
+    taluka: "Trimbakeshwar",
+    filedDate: "2024-01-20",
+    lastUpdate: "2024-01-20"
+  }
+]
 
 export function useCases() {
   const [cases, setCases] = useState<CaseData[]>(sampleCases)
