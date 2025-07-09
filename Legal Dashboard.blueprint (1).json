@@ -1,0 +1,291 @@
+{
+    "name": "Legal Dashboard",
+    "flow": [
+        {
+            "id": 1,
+            "module": "google-drive:watchFilesInAFolder",
+            "version": 4,
+            "parameters": {
+                "limit": 10,
+                "select": "create",
+                "folderId": "/1fajl7WxxcLFrIqaqY50fBViJV3rDOcGm",
+                "mimeType": "all",
+                "__IMTCONN__": 9712973,
+                "destination": "drive"
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "select": {
+                            "label": "By Created Time"
+                        },
+                        "folderId": {
+                            "path": [
+                                "Data (DASHBOARD)"
+                            ]
+                        },
+                        "mimeType": {
+                            "label": "All"
+                        },
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google-restricted"
+                            },
+                            "label": "Legal Dash (igatpuritrimbakeshwar@gmail.com)"
+                        },
+                        "destination": {
+                            "label": "My Drive"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google-restricted",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "type": "hidden"
+                    },
+                    {
+                        "name": "select",
+                        "type": "select",
+                        "label": "Watch Files",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "create",
+                                "modify"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "destination",
+                        "type": "select",
+                        "label": "Choose a Drive",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "mimeType",
+                        "type": "select",
+                        "label": "File Types to Watch",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "all",
+                                "document",
+                                "spreadsheet",
+                                "slide",
+                                "drawing"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "folderId",
+                        "type": "folder",
+                        "label": "Select the Folder to be Watched",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "google-drive:getAFile",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 9712973
+            },
+            "mapper": {
+                "file": "{{1.id}}",
+                "select": "map",
+                "formatDrawings": "image/jpeg",
+                "formatDocuments": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "formatSpreadsheets": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "formatPresentations": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "select": {
+                            "label": "Enter manually"
+                        },
+                        "formatDrawings": {
+                            "label": "JPEG"
+                        },
+                        "formatDocuments": {
+                            "label": "MS Word Document"
+                        },
+                        "formatSpreadsheets": {
+                            "label": "MS Excel"
+                        },
+                        "formatPresentations": {
+                            "label": "MS PowerPoint"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google-restricted"
+                            },
+                            "label": "Legal Dash (igatpuritrimbakeshwar@gmail.com)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google-restricted",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "type": "hidden"
+                    },
+                    {
+                        "name": "select",
+                        "type": "select",
+                        "label": "Enter a File ID",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "map",
+                                "value"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "formatDocuments",
+                        "type": "select",
+                        "label": "Convert Google Documents Files to Format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/pdf",
+                                "application/vnd.oasis.opendocument.text",
+                                "text/html",
+                                "text/plain",
+                                "application/rtf",
+                                "text/markdown"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "formatSpreadsheets",
+                        "type": "select",
+                        "label": "Convert Google Spreadsheets Files to Format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                "application/x-vnd.oasis.opendocument.spreadsheet",
+                                "application/pdf",
+                                "text/csv"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "formatPresentations",
+                        "type": "select",
+                        "label": "Convert Google Slides Files to Format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                                "application/pdf"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "formatDrawings",
+                        "type": "select",
+                        "label": "Convert Google Drawings Files to Format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "image/jpeg",
+                                "image/png",
+                                "image/svg+xml",
+                                "application/pdf"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "file",
+                        "type": "text",
+                        "label": "File ID",
+                        "required": true
+                    }
+                ],
+                "advanced": true
+            }
+        },
+        {
+            "id": 4,
+            "module": "http:ActionSendData",
+            "version": 3,
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Value must not be empty."
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}
