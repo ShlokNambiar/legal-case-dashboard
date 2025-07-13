@@ -136,7 +136,21 @@ export default function IgatpuriDashboard() {
     filteredCases.forEach((c) => {
       const nextDate = nextDates[c.caseNumber] || c.nextDate || ""
       if (nextDate.trim() !== "") {
-        nextDateCounts.set(nextDate, (nextDateCounts.get(nextDate) || 0) + 1)
+        // Clean and format the date
+        let cleanDate = nextDate.trim()
+
+        // Handle ISO date format (2025-01-02T00:00:00.000Z -> 2025-01-02)
+        if (cleanDate.includes('T')) {
+          cleanDate = cleanDate.split('T')[0]
+        }
+
+        // Convert YYYY-MM-DD to DD-MM-YYYY for display
+        if (cleanDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const [year, month, day] = cleanDate.split('-')
+          cleanDate = `${day}-${month}-${year}`
+        }
+
+        nextDateCounts.set(cleanDate, (nextDateCounts.get(cleanDate) || 0) + 1)
       }
     })
 

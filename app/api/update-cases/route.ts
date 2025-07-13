@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { initializeDatabase, upsertCases, getAllCases, getCaseStats } from "@/lib/db"
 
+// Allow this route to execute for up to 15 minutes (900 seconds) to handle large CSV uploads
+export const maxDuration = 900; // seconds
+
 // This API endpoint will be called by your automation
 export async function POST(request: NextRequest) {
   // Add CORS headers
@@ -147,18 +150,31 @@ async function processCsvText(csvText: string) {
       await initializeDatabase()
 
       // Convert cases to database format with new structure
-      const dbCases = cases.map(case_ => ({
-        sr_no: case_["Sr No"] || "",
-        case_number: case_["Case Number"] || "",
-        case_type: case_["Case Type"] || "",
-        applicant_name: case_["Appellant"] || case_["Applicant Name"] || "",
-        respondent_name: case_["Respondent"] || case_["Respondent Name"] || "",
-        received: case_["Received"] || "",
-        next_date: case_["Next Date"] || "",
-        status: case_["Status"] || "",
-        remarks: case_["Remarks"] || "",
-        taluka: case_.taluka || "Unknown"
-      }))
+      const dbCases = cases.map(case_ => {
+        // Handle Next Date field - convert YYYY-MM-DD to proper format
+        let nextDate = case_["Next Date"] || ""
+        if (nextDate && nextDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          // Keep YYYY-MM-DD format for database storage
+          nextDate = nextDate
+        } else if (nextDate && nextDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
+          // Convert DD-MM-YYYY to YYYY-MM-DD for database
+          const [day, month, year] = nextDate.split('-')
+          nextDate = `${year}-${month}-${day}`
+        }
+
+        return {
+          sr_no: case_["Sr No"] || "",
+          case_number: case_["Case Number"] || "",
+          case_type: case_["Case Type"] || "",
+          applicant_name: case_["Appellant"] || case_["Applicant Name"] || "",
+          respondent_name: case_["Respondent"] || case_["Respondent Name"] || "",
+          received: case_["Received"] || "",
+          next_date: (nextDate || undefined) as string | undefined,
+          status: case_["Status"] || "",
+          remarks: case_["Remarks"] || "",
+          taluka: case_.taluka || "Unknown"
+        }
+      })
 
       const result = await upsertCases(dbCases)
       if (!result.success) {
@@ -277,7 +293,21 @@ export async function GET() {
     const cases = await getAllCases()
     const stats = await getCaseStats()
 
-    // Convert database format back to dashboard format (CaseData interface)
+    // Date helpers
+function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
+  if (!dateInput) return "";
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (isNaN(date.getTime())) {
+    // Already in readable format, just return string
+    return typeof dateInput === "string" ? dateInput : "";
+  }
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${dd}-${mm}-${yyyy}`;
+}
+
+// Convert database format back to dashboard format (CaseData interface)
     const dashboardCases = cases.map(case_ => ({
       date: case_.created_at || new Date().toISOString(),
       caseType: case_.case_type || "अपील",
@@ -285,7 +315,7 @@ export async function GET() {
       appellant: case_.applicant_name,
       respondent: case_.respondent_name,
       received: case_.received || "प्राप्त",
-      nextDate: case_.next_date || "2025-07-17",
+      nextDate: formatDateDDMMYYYY(case_.next_date),
       status: case_.status || "",
       taluka: case_.taluka,
       filedDate: case_.created_at || new Date().toISOString(),

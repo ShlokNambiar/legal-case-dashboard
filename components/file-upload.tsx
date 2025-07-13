@@ -19,10 +19,25 @@ export function FileUpload() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 900000); // 15 minutes
+      let response;
+      try {
+        response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          setUploadStatus('Upload timed out. Please try with a smaller file or check your connection.');
+          setIsUploading(false);
+          return;
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       const data = await response.json();
       
