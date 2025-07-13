@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
 
 export async function POST(request: Request) {
   try {
@@ -14,67 +13,41 @@ export async function POST(request: Request) {
       );
     }
 
-    const fileName = file.name;
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    let resultData = {};
-
-    if (fileName.endsWith('.xlsx')) {
-      // Parse XLSX
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-      // Extract Next Date for each row
-      resultData = {
-        fileType: 'xlsx',
-        fileName,
-        rows, // includes Next Date and all columns
-      };
-    } else if (fileName.endsWith('.csv')) {
-      // Parse CSV
-      const csvText = buffer.toString('utf-8');
-      const lines = csvText.split(/\r?\n/);
-      const headers = lines[0].split(',');
-      const rows = lines.slice(1).filter(l=>l.trim()).map(line => {
-        const values = line.split(',');
-        const row: Record<string, string> = {};
-        headers.forEach((h, i) => row[h.trim()] = (values[i] || '').trim());
-        return row;
-      });
-      resultData = {
-        fileType: 'csv',
-        fileName,
-        rows, // includes Next Date and all columns
-      };
-    } else if (fileName.endsWith('.docx')) {
-      // Extract text from .docx
-      const result = await mammoth.extractRawText({ buffer });
-      const text = result.value;
-      // Extract 'Next Date' from the text
-      let nextDate = null;
-      const nextDateRegex = /Next Date[:\s]*([0-9]{2}[\/-][0-9]{2}[\/-][0-9]{4})/i;
-      const match = text.match(nextDateRegex);
-      if (match) {
-        nextDate = match[1];
-      }
-      resultData = {
-        fileType: 'docx',
-        fileName,
-        content: text,
-        nextDate,
-      };
-    } else {
+    // Check if file is a .docx
+    if (!file.name.endsWith('.docx')) {
       return NextResponse.json(
-        { error: 'Only .xlsx, .csv, or .docx files are allowed' },
+        { error: 'Only .docx files are allowed' },
         { status: 400 }
       );
     }
 
+    // Convert file to buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    // Extract text from .docx
+    const result = await mammoth.extractRawText({ buffer });
+    const text = result.value;
+
+    // Extract 'Next Date' from the text
+    let nextDate = null;
+    // Try to match 'Next Date' in a table or line, e.g., Next Date    02-01-2025
+    const nextDateRegex = /Next Date[:\s]*([0-9]{2}[\/-][0-9]{2}[\/-][0-9]{4})/i;
+    const match = text.match(nextDateRegex);
+    if (match) {
+      nextDate = match[1];
+    }
+    const caseData = {
+      fileName: file.name,
+      content: text,
+      nextDate, // extracted value or null
+      // Add more parsed fields as needed
+    };
+
     return NextResponse.json({
       success: true,
-      data: resultData,
-      message: 'File processed successfully',
+      data: caseData,
+      message: 'File processed successfully'
     });
 
   } catch (error) {
