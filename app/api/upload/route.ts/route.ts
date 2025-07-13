@@ -29,10 +29,18 @@ export async function POST(request: Request) {
     const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
-    // Simple parsing - this will need to be adjusted based on your .docx structure
+    // Extract 'Next Date' from the text
+    let nextDate = null;
+    // Try to match 'Next Date' in a table or line, e.g., Next Date    02-01-2025
+    const nextDateRegex = /Next Date[:\s]*([0-9]{2}[\/-][0-9]{2}[\/-][0-9]{4})/i;
+    const match = text.match(nextDateRegex);
+    if (match) {
+      nextDate = match[1];
+    }
     const caseData = {
       fileName: file.name,
       content: text,
+      nextDate, // extracted value or null
       // Add more parsed fields as needed
     };
 
