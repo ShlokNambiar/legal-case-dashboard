@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeDatabase, updateCaseField, getCaseByNumber } from "@/lib/db"
+import { initializeDatabase, updateCaseField, getCaseByNumber } from "@/lib/dbSupabase"
 
 // PATCH endpoint to update specific fields of a case
 export async function PATCH(
