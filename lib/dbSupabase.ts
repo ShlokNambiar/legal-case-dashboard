@@ -49,17 +49,39 @@ export async function upsertCases(cases: CaseRecord[]) {
 export async function getAllCases(): Promise<CaseRecord[]> {
   console.log('=== getAllCases called ===')
   
-  // Get all cases without ordering to avoid potential issues
-  const { data, error } = await supabase.from('legal_cases').select('*')
+  // Get all cases - Supabase has a default limit of 1000, so we need to handle pagination
+  let allCases: any[] = []
+  let from = 0
+  const pageSize = 1000
   
-  console.log('Database query result: Retrieved', data?.length || 0, 'cases')
-  
-  if (error) {
-    console.error('Error fetching cases:', error)
-    return []
+  while (true) {
+    const { data, error } = await supabase
+      .from('legal_cases')
+      .select('*')
+      .range(from, from + pageSize - 1)
+    
+    if (error) {
+      console.error('Error fetching cases:', error)
+      break
+    }
+    
+    if (!data || data.length === 0) {
+      break
+    }
+    
+    allCases = allCases.concat(data)
+    console.log(`Fetched ${data.length} cases, total so far: ${allCases.length}`)
+    
+    // If we got less than pageSize, we've reached the end
+    if (data.length < pageSize) {
+      break
+    }
+    
+    from += pageSize
   }
   
-  return data as CaseRecord[]
+  console.log('Database query result: Retrieved', allCases.length, 'total cases')
+  return allCases as CaseRecord[]
 }
 
 export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
