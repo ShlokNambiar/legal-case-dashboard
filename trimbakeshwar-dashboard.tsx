@@ -179,16 +179,21 @@ export default function TrimbakeshwarDashboard() {
   }
 
   // Handle status update
-  const handleStatusUpdate = async (caseNumber: string, newStatus: string) => {
+  const handleStatusUpdate = async (case_: any, newStatus: string) => {
+    const caseNumber = case_.caseNumber
     // Update local state immediately for responsive UI
     setEditableStatuses(prev => ({
       ...prev,
       [caseNumber]: newStatus
     }))
 
-    // Persist to database
+    // Persist to database using UID
     try {
-      const result = await updateCase(caseNumber, 'status', newStatus)
+      if (!case_.uid) {
+        console.error('No UID found for case:', caseNumber)
+        return
+      }
+      const result = await updateCase(case_.uid, 'status', newStatus, caseNumber)
       if (!result.success) {
         console.error('Failed to update status:', result.error)
         // Optionally show a toast notification here
@@ -199,16 +204,21 @@ export default function TrimbakeshwarDashboard() {
   }
 
   // Handle received status update
-  const handleReceivedUpdate = async (caseNumber: string, newReceived: string) => {
+  const handleReceivedUpdate = async (case_: any, newReceived: string) => {
+    const caseNumber = case_.caseNumber
     // Update local state immediately for responsive UI
     setReceivedStatuses(prev => ({
       ...prev,
       [caseNumber]: newReceived
     }))
 
-    // Persist to database
+    // Persist to database using UID
     try {
-      const result = await updateCase(caseNumber, 'received', newReceived)
+      if (!case_.uid) {
+        console.error('No UID found for case:', caseNumber)
+        return
+      }
+      const result = await updateCase(case_.uid, 'received', newReceived, caseNumber)
       if (!result.success) {
         console.error('Failed to update received status:', result.error)
         // Optionally show a toast notification here
@@ -219,16 +229,21 @@ export default function TrimbakeshwarDashboard() {
   }
 
   // Handle next date update
-  const handleNextDateUpdate = async (caseNumber: string, newDate: string) => {
+  const handleNextDateUpdate = async (case_: any, newDate: string) => {
+    const caseNumber = case_.caseNumber
     // Update local state immediately for responsive UI
     setNextDates(prev => ({
       ...prev,
       [caseNumber]: newDate
     }))
 
-    // Persist to database
+    // Persist to database using UID
     try {
-      const result = await updateCase(caseNumber, 'next_date', newDate)
+      if (!case_.uid) {
+        console.error('No UID found for case:', caseNumber)
+        return
+      }
+      const result = await updateCase(case_.uid, 'next_date', newDate, caseNumber)
       if (!result.success) {
         console.error('Failed to update next date:', result.error)
         // Optionally show a toast notification here
@@ -604,7 +619,7 @@ export default function TrimbakeshwarDashboard() {
                               <TableCell className="p-2 sm:p-4">
                                 <Select
                                   value={receivedStatuses[case_.caseNumber] || case_.received || "-"}
-                                  onValueChange={(value) => handleReceivedUpdate(case_.caseNumber, value)}
+                                  onValueChange={(value) => handleReceivedUpdate(case_, value)}
                                 >
                                   <SelectTrigger className="w-full min-w-[70px] h-8 text-xs border-indigo-200">
                                     <SelectValue />
@@ -619,7 +634,7 @@ export default function TrimbakeshwarDashboard() {
                                 <Input
                                   type="date"
                                   value={nextDates[case_.caseNumber] || case_.nextDate || "2025-07-17"}
-                                  onChange={(e) => handleNextDateUpdate(case_.caseNumber, e.target.value)}
+                                  onChange={(e) => handleNextDateUpdate(case_, e.target.value)}
                                   className="w-full min-w-[130px] h-8 text-xs border-indigo-200 focus:border-indigo-400"
                                 />
                               </TableCell>

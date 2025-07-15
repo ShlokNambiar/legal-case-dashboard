@@ -221,7 +221,7 @@ export function useCases() {
       console.log(`🔄 STARTING UPDATE: UID ${uid}, field: ${field}, value: ${value}`)
       
       // First update the database via API using UID
-      const response = await fetch(`/api/cases/${encodeURIComponent(caseNumber || uid)}`, {
+      const response = await fetch(`/api/cases/${encodeURIComponent(uid)}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
