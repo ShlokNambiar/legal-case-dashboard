@@ -10,6 +10,7 @@ export interface CaseData {
   taluka: string
   filedDate: string
   lastUpdate: string
+  remarks?: string  // Optional remarks field
 }
 
 export function parseCsvToCases(csvText: string): CaseData[] {
@@ -69,6 +70,10 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         case "taluka":
           caseData.taluka = value
           break
+        case "remarks":
+        case "remark":
+          caseData.remarks = value
+          break
       }
     })
 
@@ -86,6 +91,7 @@ export function parseCsvToCases(csvText: string): CaseData[] {
         taluka: caseData.taluka || "Unknown",
         filedDate: caseData.date,
         lastUpdate: new Date().toISOString().split("T")[0],
+        remarks: caseData.remarks || "",
       }
 
       cases.push(finalCase)

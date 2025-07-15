@@ -319,7 +319,8 @@ function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
       status: case_.status || "",
       taluka: case_.taluka,
       filedDate: case_.created_at || new Date().toISOString(),
-      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString()
+      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString(),
+      remarks: case_.remarks || ""
     }))
 
     const breakdown = {
