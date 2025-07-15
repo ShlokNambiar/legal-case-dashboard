@@ -220,7 +220,43 @@ export function useCases() {
     try {
       console.log(`🔄 STARTING UPDATE: UID ${uid}, field: ${field}, value: ${value}`)
       
-      // First update the database via API using UID
+      // Check if this is a temporary UID (from a newly added case)
+      if (uid.startsWith('temp-')) {
+        console.log(`⚠️ Temporary UID detected: ${uid}. Updating local state only.`)
+        
+        // Update local state only for temporary UIDs
+        setCases(prevCases => 
+          prevCases.map(case_ => 
+            case_.uid === uid 
+              ? { ...case_, [field]: value, lastUpdate: new Date().toISOString() }
+              : case_
+          )
+        )
+        setLastUpdated(new Date())
+
+        // Update localStorage
+        const updatedCases = cases.map(case_ => 
+          case_.uid === uid 
+            ? { ...case_, [field]: value, lastUpdate: new Date().toISOString() }
+            : case_
+        )
+        localStorage.setItem("legal-cases", JSON.stringify({
+          cases: updatedCases,
+          lastUpdated: new Date().toISOString(),
+        }))
+        
+        console.log(`✅ Temporary case updated in local state only`)
+        
+        // Trigger a refresh to get the real UIDs from database
+        setTimeout(() => {
+          console.log(`🔄 Refreshing data to get real UIDs...`)
+          loadCases()
+        }, 1000)
+        
+        return { success: true }
+      }
+      
+      // For real UIDs, proceed with API call
       const response = await fetch(`/api/cases/${encodeURIComponent(uid)}`, {
         method: 'PATCH',
         headers: {
@@ -307,11 +343,12 @@ export function useCases() {
       console.log(`✅ Database insert successful for case ${newCase.caseNumber}`)
 
       // Add the new case to local state immediately for responsive UI
+      // Use the provided UID if available, otherwise generate one
       const newCaseWithUid = {
         ...newCase,
-        uid: `temp-${Date.now()}`, // Temporary UID until we refresh from database
-        date: new Date().toISOString(),
-        filedDate: new Date().toISOString(),
+        uid: newCase.uid || `temp-${Date.now()}`, // Use provided UID or fallback to temp
+        date: newCase.date || new Date().toISOString(),
+        filedDate: newCase.filedDate || new Date().toISOString(),
         lastUpdate: new Date().toISOString(),
         nextDate: newCase.nextDate || "2025-07-17" // Ensure proper date format
       }
@@ -326,7 +363,7 @@ export function useCases() {
         lastUpdated: new Date().toISOString(),
       }))
       
-      console.log(`✅ New case added to local state in background`)
+      console.log(`✅ New case added to local state with UID: ${newCaseWithUid.uid}`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to add case"

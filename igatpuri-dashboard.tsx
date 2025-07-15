@@ -274,8 +274,20 @@ export default function IgatpuriDashboard() {
   }
 
   const saveStatusDialog = (caseNumber: string) => {
-    handleStatusUpdate(caseNumber, tempStatusValue)
+    const case_ = igatpuriCases.find(c => c.caseNumber === caseNumber)
+    if (case_) {
+      handleStatusUpdate(case_, tempStatusValue)
+    }
     closeStatusDialog(caseNumber)
+  }
+
+  // Generate a proper UUID
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   // Handle add new case
@@ -286,7 +298,8 @@ export default function IgatpuriDashboard() {
     }
 
     const caseData = {
-      date: new Date().toISOString().split("T")[0],
+      uid: generateUUID(), // Generate a proper UUID right away
+      date: new Date().toISOString(),
       caseType: newCase.caseType,
       caseNumber: newCase.caseNumber,
       appellant: newCase.appellant,
@@ -295,8 +308,8 @@ export default function IgatpuriDashboard() {
       nextDate: "2025-07-17",
       status: "",
       taluka: "Igatpuri",
-      filedDate: new Date().toISOString().split("T")[0],
-      lastUpdate: new Date().toISOString().split("T")[0],
+      filedDate: new Date().toISOString(),
+      lastUpdate: new Date().toISOString(),
     }
 
     // Add the case using the addCase function from useCases hook
