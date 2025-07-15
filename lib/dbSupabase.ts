@@ -14,12 +14,13 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 
 export interface CaseRecord {
   id?: number
+  uid?: string  // Add UID for unique identification
   "Case Type"?: string
   "Case Number": string
   "Appellant": string
   "Respondent": string
   "Received"?: string
-  "Next Date"?: string
+  "Next Date"?: string | null
   "Taluka": string
   status?: string
   remarks?: string
@@ -35,28 +36,37 @@ export async function initializeDatabase() {
 // Insert or update cases
 export async function upsertCases(cases: CaseRecord[]) {
   if (!cases.length) return { success: true, count: 0, inserted: 0, updated: 0 }
+  
+  console.log(`🔄 Upserting ${cases.length} cases to CaseData table`)
+  console.log(`📝 Sample case structure:`, cases[0])
+  
   const { data, error } = await supabase
-    .from('legal_cases')
-    .upsert(cases, { onConflict: 'case_number' })
+    .from('CaseData')
+    .upsert(cases, { onConflict: 'Case Number' })  // Fixed: Use the actual column name
     .select()
+    
   if (error) {
-    console.error('Error upserting cases:', error)
-    return { success: false, error: error.message }
+    console.error('❌ Error upserting cases:', error)
+    console.error('❌ Error details:', error.details)
+    console.error('❌ Error hint:', error.hint)
+    return { success: false, error: `Database error: ${error.message}. Details: ${error.details || 'None'}` }
   }
+  
+  console.log(`✅ Successfully upserted ${data?.length || 0} cases`)
   return { success: true, count: cases.length, inserted: data?.length ?? 0, updated: cases.length - (data?.length ?? 0) }
 }
 
 export async function getAllCases(): Promise<CaseRecord[]> {
   console.log('=== getAllCases called ===')
   
-  // Get all cases - Supabase has a default limit of 1000, so we need to handle pagination
+  // Get all cases from the new CaseData table - Supabase has a default limit of 1000, so we need to handle pagination
   let allCases: any[] = []
   let from = 0
   const pageSize = 1000
   
   while (true) {
     const { data, error } = await supabase
-      .from('legal_cases')
+      .from('CaseData')
       .select('*')
       .range(from, from + pageSize - 1)
     
@@ -85,7 +95,7 @@ export async function getAllCases(): Promise<CaseRecord[]> {
 }
 
 export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
-  const { data, error } = await supabase.from('legal_cases').select('*').eq('Taluka', taluka).order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('CaseData').select('*').eq('Taluka', taluka).order('created_at', { ascending: false })
   if (error) {
     console.error('Error fetching cases by taluka:', error)
     return []
@@ -94,7 +104,7 @@ export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
 }
 
 export async function getCaseStats() {
-  const { data, error } = await supabase.from('legal_cases').select('Taluka,Received')
+  const { data, error } = await supabase.from('CaseData').select('Taluka,Received')
   if (error) {
     console.error('Error fetching stats:', error)
     return { byTaluka: [], total: { total_cases: 0, received_cases: 0, pending_cases: 0 } }
@@ -117,33 +127,29 @@ export async function getCaseStats() {
   return { byTaluka, total: { total_cases, received_cases, pending_cases } }
 }
 
-export async function updateCaseField(caseNumber: string, field: string, value: string) {
-  console.log(`🔍 CHECKING: Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+export async function updateCaseField(uid: string, field: string, value: string) {
+  console.log(`🔍 UPDATING: case UID ${uid}, field: ${field}, value: ${value}`)
   
-  // First, check how many rows have this case number
-  const { data: existingCases, error: checkError } = await supabase
-    .from('legal_cases')
-    .select('"Case Number", "Appellant", "Respondent"')
-    .eq('Case Number', caseNumber)
+  // Use UID for unique identification - no more duplicate issues!
+  const { data: existingCase, error: checkError } = await supabase
+    .from('CaseData')
+    .select('uid, "Case Number", "Appellant", "Respondent"')
+    .eq('uid', uid)
+    .single()
   
   if (checkError) {
-    console.error('❌ Error checking existing cases:', checkError)
+    console.error('❌ Error checking existing case:', checkError)
     return { success: false, error: checkError.message }
   }
   
-  console.log(`🔍 Found ${existingCases?.length || 0} cases with case number "${caseNumber}":`, existingCases)
-  
-  if (!existingCases || existingCases.length === 0) {
-    console.error('❌ No case found with case number:', caseNumber)
+  if (!existingCase) {
+    console.error('❌ No case found with UID:', uid)
     return { success: false, error: 'Case not found' }
   }
   
-  if (existingCases.length > 1) {
-    console.error('⚠️ DANGER: Multiple cases found with same case number! This will cause data corruption:', existingCases)
-    return { success: false, error: `Multiple cases found with case number "${caseNumber}". Cannot safely update.` }
-  }
+  console.log(`✅ Found unique case with UID ${uid}: ${existingCase['Case Number']}`)
   
-  // Don't add updated_at since the column doesn't exist in your table
+  // Create the update payload with proper column names
   const payload: Record<string, any> = {}
   
   // Map frontend field names to your exact database column names
@@ -159,29 +165,35 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   
   console.log(`📝 Mapped field "${field}" to database field "${dbField}"`)
   console.log(`📝 Update payload:`, payload)
-  console.log(`📝 Updating case: ${caseNumber}`)
   
-  // Since there's only one case with this number (we checked above), it's safe to update by case number
+  // Update using UID - guaranteed unique!
   const { error, data } = await supabase
-    .from('legal_cases')
+    .from('CaseData')
     .update(payload)
-    .eq('Case Number', caseNumber)
+    .eq('uid', uid)
     .select()
   
   if (error) {
     console.error('❌ Database update error:', error)
-    return { success: false, error: error.message }
+    console.error('❌ Error details:', error.details)
+    console.error('❌ Error hint:', error.hint)
+    return { success: false, error: `Database error: ${error.message}. Details: ${error.details || 'None'}` }
   }
   
-  console.log(`✅ Successfully updated case ${caseNumber}`)
+  if (!data || data.length === 0) {
+    console.error('❌ No rows were updated')
+    return { success: false, error: 'No rows were updated - case may not exist' }
+  }
+  
+  console.log(`✅ Successfully updated case UID ${uid} (${existingCase['Case Number']})`)
   console.log(`✅ Updated data:`, data)
-  return { success: true, updated: 1 }
+  return { success: true, updated: data.length }
 }
 
 export async function getCaseByNumber(caseNumber: string): Promise<CaseRecord | null> {
   console.log(`🔍 Looking for case: ${caseNumber}`)
   
-  const { data, error } = await supabase.from('legal_cases').select('*').eq('Case Number', caseNumber)
+  const { data, error } = await supabase.from('CaseData').select('*').eq('Case Number', caseNumber)
   
   if (error) {
     console.error('❌ Error fetching case by number:', error)
@@ -208,7 +220,7 @@ export async function checkForDuplicateCaseNumbers() {
   console.log('🔍 Checking for duplicate case numbers...')
   
   const { data, error } = await supabase
-    .from('legal_cases')
+    .from('CaseData')
     .select('"Case Number", "Appellant", "Respondent"')
   
   if (error) {

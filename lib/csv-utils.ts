@@ -1,4 +1,5 @@
 export interface CaseData {
+  uid?: string      // Unique identifier for database operations (hidden from UI)
   date: string
   caseType: string
   caseNumber: string

@@ -149,7 +149,7 @@ async function processCsvText(csvText: string) {
     try {
       await initializeDatabase()
 
-      // Convert cases to database format with new structure
+      // Convert cases to database format - use exact column names that match your Supabase table
       const dbCases = cases.map(case_ => {
         // Handle Next Date field - convert YYYY-MM-DD to proper format
         let nextDate = case_["Next Date"] || ""
@@ -163,16 +163,15 @@ async function processCsvText(csvText: string) {
         }
 
         return {
-          sr_no: case_["Sr No"] || "",
-          case_number: case_["Case Number"] || "",
-          case_type: case_["Case Type"] || "",
-          applicant_name: case_["Appellant"] || case_["Applicant Name"] || "",
-          respondent_name: case_["Respondent"] || case_["Respondent Name"] || "",
-          received: case_["Received"] || "",
-          next_date: (nextDate || undefined) as string | undefined,
+          "Case Number": case_["Case Number"] || "",
+          "Case Type": case_["Case Type"] || "",
+          "Appellant": case_["Appellant"] || case_["Applicant Name"] || "",
+          "Respondent": case_["Respondent"] || case_["Respondent Name"] || "",
+          "Received": case_["Received"] || "",
+          "Next Date": nextDate || null,
+          "Taluka": case_.taluka || "Unknown",
           status: case_["Status"] || "",
-          remarks: case_["Remarks"] || "",
-          taluka: case_.taluka || "Unknown"
+          remarks: case_["Remarks"] || ""
         }
       })
 
@@ -335,6 +334,7 @@ function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
       const talukaCol = columns.find(col => col === 'Taluka') || columns[6];
       
       return {
+        uid: case_.uid || undefined,  // Include UID for unique identification
         date: case_.created_at || new Date().toISOString(),
         caseType: case_[caseTypeCol] || case_.case_type || "अपील",
         caseNumber: case_[caseNumberCol] || case_.case_number || "",

@@ -216,17 +216,17 @@ export function useCases() {
     loadCases()
   }
 
-  const updateCase = async (caseNumber: string, field: string, value: string) => {
+  const updateCase = async (uid: string, field: string, value: string, caseNumber?: string) => {
     try {
-      console.log(`🔄 STARTING UPDATE: case ${caseNumber}, field: ${field}, value: ${value}`)
+      console.log(`🔄 STARTING UPDATE: UID ${uid}, field: ${field}, value: ${value}`)
       
-      // First update the database via API
-      const response = await fetch(`/api/cases/${encodeURIComponent(caseNumber)}`, {
+      // First update the database via API using UID
+      const response = await fetch(`/api/cases/${encodeURIComponent(caseNumber || uid)}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ field, value }),
+        body: JSON.stringify({ field, value, uid }),
       })
 
       console.log(`📡 API Response status: ${response.status}`)
@@ -238,7 +238,7 @@ export function useCases() {
         return { success: false, error: result.error }
       }
 
-      console.log(`✅ Database update successful for case ${caseNumber}`)
+      console.log(`✅ Database update successful for UID ${uid}`)
 
       // IMPORTANT: Refresh from database to get the actual updated data
       console.log(`🔄 Refreshing data from database to ensure we have latest state`)
@@ -254,23 +254,45 @@ export function useCases() {
     }
   }
 
-  const addCase = (newCase: CaseData) => {
+  const addCase = async (newCase: CaseData) => {
     try {
-      // Add the new case to the existing cases
-      const updatedCases = [...cases, newCase]
-      setCases(updatedCases)
-      setLastUpdated(new Date())
-
-      // Save to localStorage for persistence
-      localStorage.setItem(
-        "legal-cases",
-        JSON.stringify({
-          cases: updatedCases,
-          lastUpdated: new Date().toISOString(),
+      console.log(`🔄 ADDING NEW CASE: ${newCase.caseNumber}`)
+      
+      // First add to database via API
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caseNumber: newCase.caseNumber,
+          caseType: newCase.caseType,
+          appellant: newCase.appellant,
+          respondent: newCase.respondent,
+          received: newCase.received,
+          nextDate: newCase.nextDate,
+          taluka: newCase.taluka,
+          status: newCase.status,
+          remarks: newCase.remarks
         }),
-      )
+      })
 
-      console.log(`Successfully added new case: ${newCase.caseNumber}`)
+      console.log(`📡 API Response status: ${response.status}`)
+      const result = await response.json()
+      console.log(`📡 API Response data:`, result)
+      
+      if (!result.success) {
+        console.error('❌ Failed to add case to database:', result.error)
+        return { success: false, error: result.error }
+      }
+
+      console.log(`✅ Database insert successful for case ${newCase.caseNumber}`)
+
+      // Refresh from database to get the updated data
+      console.log(`🔄 Refreshing data from database`)
+      await loadCases()
+      
+      console.log(`✅ Data refreshed from database`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to add case"

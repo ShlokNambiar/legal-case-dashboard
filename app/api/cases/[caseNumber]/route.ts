@@ -17,11 +17,18 @@ export async function PATCH(
 
     const { caseNumber } = await params
     const body = await request.json()
-    const { field, value } = body
+    const { field, value, uid } = body
 
     if (!field || value === undefined) {
       return NextResponse.json(
         { error: "Field and value are required" },
+        { status: 400, headers }
+      )
+    }
+
+    if (!uid) {
+      return NextResponse.json(
+        { error: "UID is required for updates" },
         { status: 400, headers }
       )
     }
@@ -35,9 +42,9 @@ export async function PATCH(
       )
     }
     
-    console.log(`API: Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+    console.log(`API: Updating case UID ${uid} (${caseNumber}), field: ${field}, value: ${value}`)
 
-    const result = await updateCaseField(caseNumber, field, value)
+    const result = await updateCaseField(uid, field, value)
 
     if (!result.success) {
       return NextResponse.json(
@@ -48,7 +55,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      message: `Updated ${field} for case ${caseNumber}`,
+      message: `Updated ${field} for case ${caseNumber} (UID: ${uid})`,
       updated: result.updated
     }, { headers })
 
