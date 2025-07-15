@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeDatabase, upsertCases, getAllCases, getCaseStats } from "@/lib/db"
+import { initializeDatabase, upsertCases, getAllCases, getCaseStats } from "@/lib/dbSupabase"
 
 // Allow this route to execute for up to 5 minutes (300 seconds) to handle large CSV uploads
 export const maxDuration = 300; // seconds

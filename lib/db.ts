@@ -1,7 +1,14 @@
-import { neon } from '@neondatabase/serverless'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// Initialize Neon client
-const sql = neon(process.env.DATABASE_URL!)
+// Initialize Supabase client (public anon key is sufficient for our operations)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables are missing')
+}
+
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
 
 export interface CaseRecord {
   id?: number
@@ -19,8 +26,11 @@ export interface CaseRecord {
   updated_at?: string
 }
 
-// Create tables if they don't exist
+// Supabase projects are provisioned with Postgres already. We assume the table `legal_cases` exists and has the correct schema.
+// If you need to create or migrate the table, do it once in the Supabase dashboard with SQL editor / migration scripts.
 export async function initializeDatabase() {
+  return true // no-op for Supabase
+}
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS legal_cases (
@@ -68,8 +78,27 @@ export async function initializeDatabase() {
   }
 }
 
-// Insert or update cases (SAFE - no data deletion)
+// Insert or update cases
 export async function upsertCases(cases: CaseRecord[]) {
+  try {
+    if (cases.length === 0) {
+      return { success: true, count: 0, inserted: 0, updated: 0 }
+    }
+
+    // Supabase upsert will insert new rows or update existing rows that conflict on `case_number`
+    const { data, error } = await supabase
+      .from('legal_cases')
+      .upsert(cases, { onConflict: 'case_number' })
+      .select()
+
+    if (error) throw error
+
+    return { success: true, count: cases.length, inserted: data?.length ?? 0, updated: cases.length - (data?.length ?? 0) }
+  } catch (error: any) {
+    console.error('Error upserting cases:', error)
+    return { success: false, error: error.message }
+  }
+}
   try {
     let insertedCount = 0
     let updatedCount = 0
@@ -123,6 +152,16 @@ export async function upsertCases(cases: CaseRecord[]) {
 
 // Get all cases
 export async function getAllCases(): Promise<CaseRecord[]> {
+  const { data, error } = await supabase
+    .from('legal_cases')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) {
+    console.error('Error fetching cases:', error)
+    return []
+  }
+  return (data ?? []) as CaseRecord[]
+}
   try {
     const cases = await sql`
       SELECT * FROM legal_cases
@@ -137,6 +176,17 @@ export async function getAllCases(): Promise<CaseRecord[]> {
 
 // Get cases by taluka
 export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
+  const { data, error } = await supabase
+    .from('legal_cases')
+    .select('*')
+    .eq('taluka', taluka)
+    .order('created_at', { ascending: false })
+  if (error) {
+    console.error('Error fetching cases by taluka:', error)
+    return []
+  }
+  return (data ?? []) as CaseRecord[]
+}
   try {
     const cases = await sql`
       SELECT * FROM legal_cases
@@ -152,6 +202,37 @@ export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
 
 // Get case statistics
 export async function getCaseStats() {
+  const { data, error } = await supabase.from('legal_cases').select('taluka,status')
+  if (error) {
+    console.error('Error fetching case stats:', error)
+    return { byTaluka: [], total: { total_cases: 0, received_cases: 0, pending_cases: 0 } }
+  }
+  // compute stats in JS
+  const byTaluka: any[] = []
+  const talukaMap: Record<string, { taluka: string; total_cases: number; received_cases: number; pending_cases: number }> = {}
+  let total_cases = 0,
+    received_cases = 0,
+    pending_cases = 0
+  for (const row of data!) {
+    const t = row.taluka as string
+    if (!talukaMap[t]) {
+      talukaMap[t] = { taluka: t, total_cases: 0, received_cases: 0, pending_cases: 0 }
+    }
+    talukaMap[t].total_cases++
+    total_cases++
+    if (row.status === 'प्राप्त') {
+      talukaMap[t].received_cases++
+      received_cases++
+    } else if (row.status !== '----') {
+      talukaMap[t].pending_cases++
+      pending_cases++
+    }
+  }
+  for (const k of Object.keys(talukaMap)) {
+    byTaluka.push(talukaMap[k])
+  }
+  return { byTaluka, total: { total_cases, received_cases, pending_cases } }
+}
   try {
     const stats = await sql`
       SELECT
@@ -183,6 +264,22 @@ export async function getCaseStats() {
 
 // Update individual case fields
 export async function updateCaseField(caseNumber: string, field: string, value: string) {
+  try {
+    const updatePayload: Record<string, any> = { updated_at: new Date().toISOString() }
+    updatePayload[field] = value
+
+    const { error } = await supabase
+      .from('legal_cases')
+      .update(updatePayload)
+      .eq('case_number', caseNumber)
+
+    if (error) throw error
+    return { success: true, updated: 1 }
+  } catch (error: any) {
+    console.error(`Error updating case ${caseNumber} field ${field}:`, error)
+    return { success: false, error: error.message }
+  }
+}
   try {
     let query
     switch (field) {
@@ -229,6 +326,18 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
 
 // Get a specific case by case number
 export async function getCaseByNumber(caseNumber: string): Promise<CaseRecord | null> {
+  const { data, error } = await supabase
+    .from('legal_cases')
+    .select('*')
+    .eq('case_number', caseNumber)
+    .limit(1)
+    .maybeSingle()
+  if (error) {
+    console.error('Error fetching case by number:', error)
+    return null
+  }
+  return data as CaseRecord | null
+}
   try {
     const cases = await sql`
       SELECT * FROM legal_cases
