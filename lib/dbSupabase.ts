@@ -14,16 +14,15 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 
 export interface CaseRecord {
   id?: number
-  sr_no: string
-  case_number: string
-  case_type?: string
-  applicant_name: string
-  respondent_name: string
-  received?: string
-  next_date?: string
-  status: string
-  remarks: string
-  taluka: string
+  "Case Type"?: string
+  "Case Number": string
+  "Appellant": string
+  "Respondent": string
+  "Received"?: string
+  "Next Date"?: string
+  "Taluka": string
+  status?: string
+  remarks?: string
   created_at?: string
   updated_at?: string
 }
@@ -68,7 +67,7 @@ export async function getAllCases(): Promise<CaseRecord[]> {
 }
 
 export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
-  const { data, error } = await supabase.from('legal_cases').select('*').eq('taluka', taluka).order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('legal_cases').select('*').eq('Taluka', taluka).order('created_at', { ascending: false })
   if (error) {
     console.error('Error fetching cases by taluka:', error)
     return []
@@ -77,7 +76,7 @@ export async function getCasesByTaluka(taluka: string): Promise<CaseRecord[]> {
 }
 
 export async function getCaseStats() {
-  const { data, error } = await supabase.from('legal_cases').select('taluka,status')
+  const { data, error } = await supabase.from('legal_cases').select('Taluka,Received')
   if (error) {
     console.error('Error fetching stats:', error)
     return { byTaluka: [], total: { total_cases: 0, received_cases: 0, pending_cases: 0 } }
@@ -86,13 +85,13 @@ export async function getCaseStats() {
   const tally: Record<string, { taluka: string; total_cases: number; received_cases: number; pending_cases: number }> = {}
   let total_cases = 0, received_cases = 0, pending_cases = 0
   for (const row of data!) {
-    const t = row.taluka as string
+    const t = row.Taluka as string
     if (!tally[t]) tally[t] = { taluka: t, total_cases: 0, received_cases: 0, pending_cases: 0 }
     tally[t].total_cases++
     total_cases++
-    if (row.status === 'प्राप्त') {
+    if (row.Received === 'प्राप्त') {
       tally[t].received_cases++; received_cases++
-    } else if (row.status !== '----') {
+    } else if (row.Received !== '----') {
       tally[t].pending_cases++; pending_cases++
     }
   }
@@ -103,13 +102,13 @@ export async function getCaseStats() {
 export async function updateCaseField(caseNumber: string, field: string, value: string) {
   const payload: Record<string, any> = { updated_at: new Date().toISOString() }
   payload[field] = value
-  const { error } = await supabase.from('legal_cases').update(payload).eq('case_number', caseNumber)
+  const { error } = await supabase.from('legal_cases').update(payload).eq('Case Number', caseNumber)
   if (error) return { success: false, error: error.message }
   return { success: true, updated: 1 }
 }
 
 export async function getCaseByNumber(caseNumber: string): Promise<CaseRecord | null> {
-  const { data, error } = await supabase.from('legal_cases').select('*').eq('case_number', caseNumber).maybeSingle<CaseRecord>()
+  const { data, error } = await supabase.from('legal_cases').select('*').eq('Case Number', caseNumber).maybeSingle<CaseRecord>()
   if (error) {
     console.error('Error fetching case by number:', error)
     return null

@@ -314,20 +314,36 @@ function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
 }
 
 // Convert database format back to dashboard format (CaseData interface)
-    const dashboardCases = cases.map(case_ => ({
-      date: case_.created_at || new Date().toISOString(),
-      caseType: case_.case_type || "अपील",
-      caseNumber: case_.case_number,
-      appellant: case_.applicant_name,
-      respondent: case_.respondent_name,
-      received: case_.received || "प्राप्त",
-      nextDate: formatDateDDMMYYYY(case_.next_date),
-      status: case_.status || "",
-      taluka: case_.taluka,
-      filedDate: case_.created_at || new Date().toISOString(),
-      lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString(),
-      remarks: case_.remarks || ""
-    }))
+    // Handle both English and Marathi column names
+    const dashboardCases = cases.map(case_ => {
+      // Get the actual column names from the first case to understand the structure
+      const columns = Object.keys(case_);
+      console.log('Available columns:', columns);
+      
+      // Map to new English column names
+      const caseTypeCol = columns.find(col => col === 'Case Type') || columns[0];
+      const caseNumberCol = columns.find(col => col === 'Case Number') || columns[1];
+      const applicantCol = columns.find(col => col === 'Appellant') || columns[2];
+      const respondentCol = columns.find(col => col === 'Respondent') || columns[3];
+      const receivedCol = columns.find(col => col === 'Received') || columns[4];
+      const nextDateCol = columns.find(col => col === 'Next Date') || columns[5];
+      const talukaCol = columns.find(col => col === 'Taluka') || columns[6];
+      
+      return {
+        date: case_.created_at || new Date().toISOString(),
+        caseType: case_[caseTypeCol] || case_.case_type || "अपील",
+        caseNumber: case_[caseNumberCol] || case_.case_number || "",
+        appellant: case_[applicantCol] || case_.applicant_name || "",
+        respondent: case_[respondentCol] || case_.respondent_name || "",
+        received: case_[receivedCol] || case_.received || "प्राप्त",
+        nextDate: formatDateDDMMYYYY(case_[nextDateCol] || case_.next_date),
+        status: case_.status || "",
+        taluka: case_[talukaCol] || case_.taluka || "",
+        filedDate: case_.created_at || new Date().toISOString(),
+        lastUpdate: case_.updated_at || case_.created_at || new Date().toISOString(),
+        remarks: case_.remarks || ""
+      };
+    })
 
     const breakdown = {
       igatpuri: stats.byTaluka.find(s => s.taluka === 'Igatpuri')?.total_cases || 0,
