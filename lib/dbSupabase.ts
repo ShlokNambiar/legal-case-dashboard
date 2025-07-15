@@ -46,11 +46,22 @@ export async function upsertCases(cases: CaseRecord[]) {
 }
 
 export async function getAllCases(): Promise<CaseRecord[]> {
+  console.log('=== getAllCases called ===')
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('Supabase Key exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  
   const { data, error } = await supabase.from('legal_cases').select('*').order('created_at', { ascending: false })
+  
+  console.log('Database query result:')
+  console.log('- Error:', error)
+  console.log('- Data length:', data?.length || 0)
+  
   if (error) {
     console.error('Error fetching cases:', error)
     return []
   }
+  
+  console.log('Returning', data?.length || 0, 'cases')
   return data as CaseRecord[]
 }
 

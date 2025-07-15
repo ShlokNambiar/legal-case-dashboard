@@ -288,10 +288,16 @@ export async function OPTIONS() {
 // GET endpoint to fetch current cases
 export async function GET() {
   try {
+    console.log('=== GET /api/update-cases called ===')
     await initializeDatabase()
 
+    console.log('Fetching cases from database...')
     const cases = await getAllCases()
+    console.log(`Retrieved ${cases.length} cases from database`)
+    
+    console.log('Fetching stats from database...')
     const stats = await getCaseStats()
+    console.log('Stats:', stats)
 
     // Date helpers
 function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
