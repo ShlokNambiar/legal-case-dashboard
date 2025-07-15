@@ -240,11 +240,28 @@ export function useCases() {
 
       console.log(`✅ Database update successful for UID ${uid}`)
 
-      // IMPORTANT: Refresh from database to get the actual updated data
-      console.log(`🔄 Refreshing data from database to ensure we have latest state`)
-      await loadCases()
-      
-      console.log(`✅ Data refreshed from database`)
+      // Update local state immediately for responsive UI
+      setCases(prevCases => 
+        prevCases.map(case_ => 
+          case_.uid === uid 
+            ? { ...case_, [field]: value, lastUpdate: new Date().toISOString() }
+            : case_
+        )
+      )
+      setLastUpdated(new Date())
+
+      // Update localStorage
+      const updatedCases = cases.map(case_ => 
+        case_.uid === uid 
+          ? { ...case_, [field]: value, lastUpdate: new Date().toISOString() }
+          : case_
+      )
+      localStorage.setItem("legal-cases", JSON.stringify({
+        cases: updatedCases,
+        lastUpdated: new Date().toISOString(),
+      }))
+
+      console.log(`✅ Update persisted to database and local state in background`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update case"
@@ -288,11 +305,26 @@ export function useCases() {
 
       console.log(`✅ Database insert successful for case ${newCase.caseNumber}`)
 
-      // Refresh from database to get the updated data
-      console.log(`🔄 Refreshing data from database`)
-      await loadCases()
+      // Add the new case to local state immediately for responsive UI
+      const newCaseWithUid = {
+        ...newCase,
+        uid: result.uid || `temp-${Date.now()}`, // Use returned UID or temporary one
+        date: new Date().toISOString(),
+        filedDate: new Date().toISOString(),
+        lastUpdate: new Date().toISOString()
+      }
       
-      console.log(`✅ Data refreshed from database`)
+      setCases(prevCases => [...prevCases, newCaseWithUid])
+      setLastUpdated(new Date())
+      
+      // Update localStorage
+      const updatedCases = [...cases, newCaseWithUid]
+      localStorage.setItem("legal-cases", JSON.stringify({
+        cases: updatedCases,
+        lastUpdated: new Date().toISOString(),
+      }))
+      
+      console.log(`✅ New case added to local state in background`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to add case"
