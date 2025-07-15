@@ -120,7 +120,8 @@ export async function getCaseStats() {
 export async function updateCaseField(caseNumber: string, field: string, value: string) {
   console.log(`Updating case ${caseNumber}, field: ${field}, value: ${value}`)
   
-  const payload: Record<string, any> = { updated_at: new Date().toISOString() }
+  // Don't add updated_at since the column doesn't exist in your table
+  const payload: Record<string, any> = {}
   
   // Map frontend field names to your exact database column names
   const fieldMapping: Record<string, string> = {
@@ -134,6 +135,7 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   payload[dbField] = value
   
   console.log(`Mapped field "${field}" to database field "${dbField}"`)
+  console.log(`Update payload:`, payload)
   
   const { error } = await supabase.from('legal_cases').update(payload).eq('Case Number', caseNumber)
   
