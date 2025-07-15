@@ -123,7 +123,7 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   // First, check how many rows have this case number
   const { data: existingCases, error: checkError } = await supabase
     .from('legal_cases')
-    .select('id, "Case Number", "Appellant", "Respondent"')
+    .select('"Case Number", "Appellant", "Respondent"')
     .eq('Case Number', caseNumber)
   
   if (checkError) {
@@ -159,13 +159,13 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   
   console.log(`📝 Mapped field "${field}" to database field "${dbField}"`)
   console.log(`📝 Update payload:`, payload)
-  console.log(`📝 Updating case with ID: ${existingCases[0].id}`)
+  console.log(`📝 Updating case: ${caseNumber}`)
   
-  // Use the ID instead of case number for safer updates
+  // Since there's only one case with this number (we checked above), it's safe to update by case number
   const { error, data } = await supabase
     .from('legal_cases')
     .update(payload)
-    .eq('id', existingCases[0].id)
+    .eq('Case Number', caseNumber)
     .select()
   
   if (error) {
@@ -173,7 +173,7 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
     return { success: false, error: error.message }
   }
   
-  console.log(`✅ Successfully updated case ${caseNumber} (ID: ${existingCases[0].id})`)
+  console.log(`✅ Successfully updated case ${caseNumber}`)
   console.log(`✅ Updated data:`, data)
   return { success: true, updated: 1 }
 }
@@ -209,7 +209,7 @@ export async function checkForDuplicateCaseNumbers() {
   
   const { data, error } = await supabase
     .from('legal_cases')
-    .select('"Case Number", id, "Appellant", "Respondent"')
+    .select('"Case Number", "Appellant", "Respondent"')
   
   if (error) {
     console.error('❌ Error checking for duplicates:', error)
