@@ -118,7 +118,30 @@ export async function getCaseStats() {
 }
 
 export async function updateCaseField(caseNumber: string, field: string, value: string) {
-  console.log(`Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+  console.log(`🔍 CHECKING: Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+  
+  // First, check how many rows have this case number
+  const { data: existingCases, error: checkError } = await supabase
+    .from('legal_cases')
+    .select('id, "Case Number", "Appellant", "Respondent"')
+    .eq('Case Number', caseNumber)
+  
+  if (checkError) {
+    console.error('❌ Error checking existing cases:', checkError)
+    return { success: false, error: checkError.message }
+  }
+  
+  console.log(`🔍 Found ${existingCases?.length || 0} cases with case number "${caseNumber}":`, existingCases)
+  
+  if (!existingCases || existingCases.length === 0) {
+    console.error('❌ No case found with case number:', caseNumber)
+    return { success: false, error: 'Case not found' }
+  }
+  
+  if (existingCases.length > 1) {
+    console.error('⚠️ DANGER: Multiple cases found with same case number! This will cause data corruption:', existingCases)
+    return { success: false, error: `Multiple cases found with case number "${caseNumber}". Cannot safely update.` }
+  }
   
   // Don't add updated_at since the column doesn't exist in your table
   const payload: Record<string, any> = {}
@@ -134,25 +157,91 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   const dbField = fieldMapping[field] || field
   payload[dbField] = value
   
-  console.log(`Mapped field "${field}" to database field "${dbField}"`)
-  console.log(`Update payload:`, payload)
+  console.log(`📝 Mapped field "${field}" to database field "${dbField}"`)
+  console.log(`📝 Update payload:`, payload)
+  console.log(`📝 Updating case with ID: ${existingCases[0].id}`)
   
-  const { error } = await supabase.from('legal_cases').update(payload).eq('Case Number', caseNumber)
+  // Use the ID instead of case number for safer updates
+  const { error, data } = await supabase
+    .from('legal_cases')
+    .update(payload)
+    .eq('id', existingCases[0].id)
+    .select()
   
   if (error) {
-    console.error('Database update error:', error)
+    console.error('❌ Database update error:', error)
     return { success: false, error: error.message }
   }
   
-  console.log(`Successfully updated case ${caseNumber}`)
+  console.log(`✅ Successfully updated case ${caseNumber} (ID: ${existingCases[0].id})`)
+  console.log(`✅ Updated data:`, data)
   return { success: true, updated: 1 }
 }
 
 export async function getCaseByNumber(caseNumber: string): Promise<CaseRecord | null> {
-  const { data, error } = await supabase.from('legal_cases').select('*').eq('Case Number', caseNumber).maybeSingle<CaseRecord>()
+  console.log(`🔍 Looking for case: ${caseNumber}`)
+  
+  const { data, error } = await supabase.from('legal_cases').select('*').eq('Case Number', caseNumber)
+  
   if (error) {
-    console.error('Error fetching case by number:', error)
+    console.error('❌ Error fetching case by number:', error)
     return null
   }
-  return data ?? null
+  
+  if (!data || data.length === 0) {
+    console.log(`❌ No case found with case number: ${caseNumber}`)
+    return null
+  }
+  
+  if (data.length > 1) {
+    console.error(`⚠️ DANGER: Multiple cases found with case number "${caseNumber}":`, data)
+    // Return the first one but log the issue
+    return data[0] as CaseRecord
+  }
+  
+  console.log(`✅ Found unique case: ${caseNumber}`)
+  return data[0] as CaseRecord
+}
+
+// Function to check for duplicate case numbers in the database
+export async function checkForDuplicateCaseNumbers() {
+  console.log('🔍 Checking for duplicate case numbers...')
+  
+  const { data, error } = await supabase
+    .from('legal_cases')
+    .select('"Case Number", id, "Appellant", "Respondent"')
+  
+  if (error) {
+    console.error('❌ Error checking for duplicates:', error)
+    return { success: false, error: error.message }
+  }
+  
+  // Group by case number
+  const caseGroups: Record<string, any[]> = {}
+  data?.forEach(case_ => {
+    const caseNumber = case_['Case Number']
+    if (!caseGroups[caseNumber]) {
+      caseGroups[caseNumber] = []
+    }
+    caseGroups[caseNumber].push(case_)
+  })
+  
+  // Find duplicates
+  const duplicates = Object.entries(caseGroups).filter(([_, cases]) => cases.length > 1)
+  
+  if (duplicates.length > 0) {
+    console.error('⚠️ FOUND DUPLICATE CASE NUMBERS:', duplicates)
+    return { 
+      success: true, 
+      hasDuplicates: true, 
+      duplicates: duplicates.map(([caseNumber, cases]) => ({
+        caseNumber,
+        count: cases.length,
+        cases
+      }))
+    }
+  }
+  
+  console.log('✅ No duplicate case numbers found')
+  return { success: true, hasDuplicates: false, duplicates: [] }
 }
