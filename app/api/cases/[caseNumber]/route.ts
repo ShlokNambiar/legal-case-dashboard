@@ -34,6 +34,8 @@ export async function PATCH(
         { status: 400, headers }
       )
     }
+    
+    console.log(`API: Updating case ${caseNumber}, field: ${field}, value: ${value}`)
 
     const result = await updateCaseField(caseNumber, field, value)
 

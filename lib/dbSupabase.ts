@@ -118,10 +118,31 @@ export async function getCaseStats() {
 }
 
 export async function updateCaseField(caseNumber: string, field: string, value: string) {
+  console.log(`Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+  
   const payload: Record<string, any> = { updated_at: new Date().toISOString() }
-  payload[field] = value
+  
+  // Map frontend field names to database column names
+  const fieldMapping: Record<string, string> = {
+    'status': 'Received',  // Map status updates to the Received column for now
+    'received': 'Received',
+    'next_date': 'Next Date',
+    'case_type': 'Case Type'
+  }
+  
+  const dbField = fieldMapping[field] || field
+  payload[dbField] = value
+  
+  console.log(`Mapped field "${field}" to database field "${dbField}"`)
+  
   const { error } = await supabase.from('legal_cases').update(payload).eq('Case Number', caseNumber)
-  if (error) return { success: false, error: error.message }
+  
+  if (error) {
+    console.error('Database update error:', error)
+    return { success: false, error: error.message }
+  }
+  
+  console.log(`Successfully updated case ${caseNumber}`)
   return { success: true, updated: 1 }
 }
 
