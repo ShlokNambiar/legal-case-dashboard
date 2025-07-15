@@ -300,7 +300,8 @@ export function useCases() {
       
       if (!result.success) {
         console.error('❌ Failed to add case to database:', result.error)
-        return { success: false, error: result.error }
+        setError(result.error || "Failed to add case to database")
+        return { success: false, error: result.error || "Failed to add case to database" }
       }
 
       console.log(`✅ Database insert successful for case ${newCase.caseNumber}`)
@@ -308,10 +309,11 @@ export function useCases() {
       // Add the new case to local state immediately for responsive UI
       const newCaseWithUid = {
         ...newCase,
-        uid: result.uid || `temp-${Date.now()}`, // Use returned UID or temporary one
+        uid: `temp-${Date.now()}`, // Temporary UID until we refresh from database
         date: new Date().toISOString(),
         filedDate: new Date().toISOString(),
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
+        nextDate: newCase.nextDate || "2025-07-17" // Ensure proper date format
       }
       
       setCases(prevCases => [...prevCases, newCaseWithUid])

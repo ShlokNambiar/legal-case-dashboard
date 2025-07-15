@@ -317,6 +317,26 @@ function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
   return `${dd}-${mm}-${yyyy}`;
 }
 
+function formatDateForInput(dateInput?: string | Date | null): string {
+  if (!dateInput) return "";
+  
+  // If it's already in DD-MM-YYYY format, convert to YYYY-MM-DD
+  if (typeof dateInput === "string" && dateInput.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [dd, mm, yyyy] = dateInput.split('-');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+  
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // Convert database format back to dashboard format (CaseData interface)
     // Handle both English and Marathi column names
     const dashboardCases = cases.map(case_ => {
@@ -341,7 +361,7 @@ function formatDateDDMMYYYY(dateInput?: string | Date | null): string {
         appellant: case_[applicantCol] || case_.applicant_name || "",
         respondent: case_[respondentCol] || case_.respondent_name || "",
         received: case_[receivedCol] || case_.received || "प्राप्त",
-        nextDate: formatDateDDMMYYYY(case_[nextDateCol] || case_.next_date),
+        nextDate: formatDateForInput(case_[nextDateCol] || case_.next_date),
         status: case_.status || "",
         taluka: case_[talukaCol] || case_.taluka || "",
         filedDate: case_.created_at || new Date().toISOString(),
