@@ -295,6 +295,11 @@ export async function GET() {
     const cases = await getAllCases()
     console.log(`Retrieved ${cases.length} cases from database`)
     
+    if (cases.length > 0) {
+      console.log('First case columns:', Object.keys(cases[0]))
+      console.log('First case data:', cases[0])
+    }
+    
     console.log('Fetching stats from database...')
     const stats = await getCaseStats()
     console.log('Stats:', stats)
