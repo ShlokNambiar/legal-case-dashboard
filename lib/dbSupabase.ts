@@ -122,12 +122,12 @@ export async function updateCaseField(caseNumber: string, field: string, value: 
   
   const payload: Record<string, any> = { updated_at: new Date().toISOString() }
   
-  // Map frontend field names to database column names
+  // Map frontend field names to your exact database column names
   const fieldMapping: Record<string, string> = {
-    'status': 'Received',  // Map status updates to the Received column for now
-    'received': 'Received',
-    'next_date': 'Next Date',
-    'case_type': 'Case Type'
+    'status': 'Received',      // Maps to "Received" column
+    'received': 'Received',    // Maps to "Received" column  
+    'next_date': 'Next Date',  // Maps to "Next Date" column
+    'case_type': 'Case Type'   // Maps to "Case Type" column
   }
   
   const dbField = fieldMapping[field] || field

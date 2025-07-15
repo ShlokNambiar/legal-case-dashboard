@@ -28,13 +28,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { updateCaseField } from "@/lib/api"
 import { useCases } from "@/hooks/use-cases"
 
 
 
 export default function TrimbakeshwarDashboard() {
-  const { cases, loading, error, lastUpdated, updateCasesFromCsv, refreshCases, addCase } = useCases()
+  const { cases, loading, error, lastUpdated, updateCasesFromCsv, refreshCases, addCase, updateCase } = useCases()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("All Types")
@@ -189,7 +188,7 @@ export default function TrimbakeshwarDashboard() {
 
     // Persist to database
     try {
-      const result = await updateCaseField(caseNumber, 'status', newStatus)
+      const result = await updateCase(caseNumber, 'status', newStatus)
       if (!result.success) {
         console.error('Failed to update status:', result.error)
         // Optionally show a toast notification here
@@ -209,7 +208,7 @@ export default function TrimbakeshwarDashboard() {
 
     // Persist to database
     try {
-      const result = await updateCaseField(caseNumber, 'received', newReceived)
+      const result = await updateCase(caseNumber, 'received', newReceived)
       if (!result.success) {
         console.error('Failed to update received status:', result.error)
         // Optionally show a toast notification here
@@ -229,7 +228,7 @@ export default function TrimbakeshwarDashboard() {
 
     // Persist to database
     try {
-      const result = await updateCaseField(caseNumber, 'next_date', newDate)
+      const result = await updateCase(caseNumber, 'next_date', newDate)
       if (!result.success) {
         console.error('Failed to update next date:', result.error)
         // Optionally show a toast notification here

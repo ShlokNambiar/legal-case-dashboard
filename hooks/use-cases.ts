@@ -213,6 +213,68 @@ export function useCases() {
     loadCases()
   }
 
+  const updateCase = async (caseNumber: string, field: string, value: string) => {
+    try {
+      console.log(`Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+      
+      // First update the database via API
+      const response = await fetch(`/api/cases/${encodeURIComponent(caseNumber)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ field, value }),
+      })
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        console.error('Failed to update database:', result.error)
+        return { success: false, error: result.error }
+      }
+
+      // If database update successful, update local state
+      const updatedCases = cases.map(case_ => {
+        if (case_.caseNumber === caseNumber) {
+          const updatedCase = { ...case_ }
+          
+          // Map the field to the correct property based on your table columns
+          if (field === 'status' || field === 'received') {
+            updatedCase.received = value  // Maps to "Received" column
+          } else if (field === 'next_date') {
+            updatedCase.nextDate = value  // Maps to "Next Date" column
+          } else if (field === 'case_type') {
+            updatedCase.caseType = value  // Maps to "Case Type" column
+          }
+          
+          updatedCase.lastUpdate = new Date().toISOString()
+          return updatedCase
+        }
+        return case_
+      })
+
+      setCases(updatedCases)
+      setLastUpdated(new Date())
+
+      // Save to localStorage
+      localStorage.setItem(
+        "legal-cases",
+        JSON.stringify({
+          cases: updatedCases,
+          lastUpdated: new Date().toISOString(),
+        }),
+      )
+
+      console.log(`Successfully updated case ${caseNumber}`)
+      return { success: true }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update case"
+      setError(errorMessage)
+      console.error("Error updating case:", err)
+      return { success: false, error: errorMessage }
+    }
+  }
+
   const addCase = (newCase: CaseData) => {
     try {
       // Add the new case to the existing cases
@@ -247,5 +309,6 @@ export function useCases() {
     updateCasesFromCsv,
     refreshCases,
     addCase,
+    updateCase,
   }
 }
