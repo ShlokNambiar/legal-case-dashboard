@@ -1,12 +1,14 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 // Initialize Supabase client using public env vars provided via .env or Vercel settings
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://uqxmnrithfjttfvmbsgj.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxeG1ucml0aGZqdHRmdm1ic2dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NDAzNTYsImV4cCI6MjA2ODExNjM1Nn0.8d8qxxGHaM6C2eOR-702mNeoR7Gz1AKC5PwncozZOD4'
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase environment variables are missing')
 }
+
+console.log('Supabase config:', { url: supabaseUrl, keyLength: supabaseAnonKey.length })
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
 
