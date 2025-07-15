@@ -86,10 +86,10 @@ const sampleCases: CaseData[] = [
 ]
 
 export function useCases() {
-  const [cases, setCases] = useState<CaseData[]>(sampleCases)
-  const [loading, setLoading] = useState(false)
+  const [cases, setCases] = useState<CaseData[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(new Date())
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   // Load initial data
   useEffect(() => {
@@ -153,16 +153,16 @@ export function useCases() {
       const savedCases = localStorage.getItem("legal-cases")
       if (savedCases) {
         const parsed = JSON.parse(savedCases)
-        setCases(parsed.cases || sampleCases)
+        setCases(parsed.cases || [])
         setLastUpdated(new Date(parsed.lastUpdated))
       } else {
-        setCases(sampleCases)
+        setCases([])
         setLastUpdated(new Date())
       }
     } catch (err) {
       setError("Failed to load cases")
       console.error("Error loading cases:", err)
-      setCases(sampleCases) // Fallback to sample data
+      setCases([]) // Start with empty array to avoid hydration issues
     } finally {
       setLoading(false)
     }
@@ -183,14 +183,14 @@ export function useCases() {
       const newCases = parseCsvToCases(csvText)
 
       // Update state
-      setCases(newCases.length > 0 ? newCases : sampleCases)
+      setCases(newCases)
       setLastUpdated(new Date())
 
       // Save to localStorage for persistence
       localStorage.setItem(
         "legal-cases",
         JSON.stringify({
-          cases: newCases.length > 0 ? newCases : sampleCases,
+          cases: newCases,
           lastUpdated: new Date().toISOString(),
         }),
       )
