@@ -208,6 +208,7 @@ export function useCases() {
   }
 
   const refreshCases = () => {
+    console.log(`🔄 REFRESH CASES CALLED - This will override any local changes!`)
     // Clear localStorage to force API fetch
     localStorage.removeItem("legal-cases")
     loadCases()
@@ -215,7 +216,7 @@ export function useCases() {
 
   const updateCase = async (caseNumber: string, field: string, value: string) => {
     try {
-      console.log(`Updating case ${caseNumber}, field: ${field}, value: ${value}`)
+      console.log(`🔄 STARTING UPDATE: case ${caseNumber}, field: ${field}, value: ${value}`)
       
       // First update the database via API
       const response = await fetch(`/api/cases/${encodeURIComponent(caseNumber)}`, {
@@ -226,33 +227,44 @@ export function useCases() {
         body: JSON.stringify({ field, value }),
       })
 
+      console.log(`📡 API Response status: ${response.status}`)
       const result = await response.json()
+      console.log(`📡 API Response data:`, result)
       
       if (!result.success) {
-        console.error('Failed to update database:', result.error)
+        console.error('❌ Failed to update database:', result.error)
         return { success: false, error: result.error }
       }
 
+      console.log(`✅ Database update successful for case ${caseNumber}`)
+
       // If database update successful, update local state
+      console.log(`🔄 Updating local state for case ${caseNumber}`)
       const updatedCases = cases.map(case_ => {
         if (case_.caseNumber === caseNumber) {
+          console.log(`📝 Found case to update:`, case_)
           const updatedCase = { ...case_ }
           
           // Map the field to the correct property based on your table columns
           if (field === 'status' || field === 'received') {
+            console.log(`📝 Updating received field from "${updatedCase.received}" to "${value}"`)
             updatedCase.received = value  // Maps to "Received" column
           } else if (field === 'next_date') {
+            console.log(`📝 Updating nextDate field from "${updatedCase.nextDate}" to "${value}"`)
             updatedCase.nextDate = value  // Maps to "Next Date" column
           } else if (field === 'case_type') {
+            console.log(`📝 Updating caseType field from "${updatedCase.caseType}" to "${value}"`)
             updatedCase.caseType = value  // Maps to "Case Type" column
           }
           
           updatedCase.lastUpdate = new Date().toISOString()
+          console.log(`📝 Updated case:`, updatedCase)
           return updatedCase
         }
         return case_
       })
 
+      console.log(`💾 Setting updated cases in state`)
       setCases(updatedCases)
       setLastUpdated(new Date())
 
@@ -265,7 +277,7 @@ export function useCases() {
         }),
       )
 
-      console.log(`Successfully updated case ${caseNumber}`)
+      console.log(`✅ Successfully updated case ${caseNumber} in local state and localStorage`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update case"
