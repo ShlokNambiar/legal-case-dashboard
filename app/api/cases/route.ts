@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeDatabase, upsertCases } from "@/lib/dbSupabase"
+import { initializeDatabase, supabase } from "@/lib/dbSupabase"
 
 // POST endpoint to add a new case
 export async function POST(request: NextRequest) {
@@ -26,7 +26,21 @@ export async function POST(request: NextRequest) {
       "Taluka": body.taluka || "Igatpuri"
     }
 
-    const result = await upsertCases([dbCase])
+    // Use insert instead of upsert for new cases
+    const { data, error } = await supabase
+      .from('CaseData')
+      .insert([dbCase])
+      .select()
+    
+    if (error) {
+      console.error('❌ Error inserting case:', error)
+      return NextResponse.json(
+        { error: `Database error: ${error.message}. Details: ${error.details || 'None'}` },
+        { status: 500, headers }
+      )
+    }
+
+    const result = { success: true, inserted: data?.length || 0 }
 
     if (!result.success) {
       return NextResponse.json(
