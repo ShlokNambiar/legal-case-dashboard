@@ -129,7 +129,8 @@ export function useCases() {
           console.log('API response data:', data)
 
           if (data.success && data.cases) {
-            console.log(`Successfully loaded ${data.cases.length} cases from API`)
+            console.log(`✅ Successfully loaded ${data.cases.length} cases from API`)
+            console.log(`📊 Sample case data:`, data.cases[0])
             setCases(data.cases)
             setLastUpdated(data.lastUpdated ? new Date(data.lastUpdated) : new Date())
 
@@ -138,6 +139,7 @@ export function useCases() {
               cases: data.cases,
               lastUpdated: data.lastUpdated || new Date().toISOString(),
             }))
+            console.log(`💾 Saved ${data.cases.length} cases to localStorage`)
             return
           } else {
             console.log('API response missing success or cases:', data)
@@ -238,46 +240,11 @@ export function useCases() {
 
       console.log(`✅ Database update successful for case ${caseNumber}`)
 
-      // If database update successful, update local state
-      console.log(`🔄 Updating local state for case ${caseNumber}`)
-      const updatedCases = cases.map(case_ => {
-        if (case_.caseNumber === caseNumber) {
-          console.log(`📝 Found case to update:`, case_)
-          const updatedCase = { ...case_ }
-          
-          // Map the field to the correct property based on your table columns
-          if (field === 'status' || field === 'received') {
-            console.log(`📝 Updating received field from "${updatedCase.received}" to "${value}"`)
-            updatedCase.received = value  // Maps to "Received" column
-          } else if (field === 'next_date') {
-            console.log(`📝 Updating nextDate field from "${updatedCase.nextDate}" to "${value}"`)
-            updatedCase.nextDate = value  // Maps to "Next Date" column
-          } else if (field === 'case_type') {
-            console.log(`📝 Updating caseType field from "${updatedCase.caseType}" to "${value}"`)
-            updatedCase.caseType = value  // Maps to "Case Type" column
-          }
-          
-          updatedCase.lastUpdate = new Date().toISOString()
-          console.log(`📝 Updated case:`, updatedCase)
-          return updatedCase
-        }
-        return case_
-      })
-
-      console.log(`💾 Setting updated cases in state`)
-      setCases(updatedCases)
-      setLastUpdated(new Date())
-
-      // Save to localStorage
-      localStorage.setItem(
-        "legal-cases",
-        JSON.stringify({
-          cases: updatedCases,
-          lastUpdated: new Date().toISOString(),
-        }),
-      )
-
-      console.log(`✅ Successfully updated case ${caseNumber} in local state and localStorage`)
+      // IMPORTANT: Refresh from database to get the actual updated data
+      console.log(`🔄 Refreshing data from database to ensure we have latest state`)
+      await loadCases()
+      
+      console.log(`✅ Data refreshed from database`)
       return { success: true }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update case"
