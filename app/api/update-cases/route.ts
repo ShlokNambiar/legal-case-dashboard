@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { initializeDatabase, upsertCases, getAllCases, getCaseStats } from "@/lib/db"
 
-// Allow this route to execute for up to 15 minutes (900 seconds) to handle large CSV uploads
-export const maxDuration = 900; // seconds
+// Allow this route to execute for up to 5 minutes (300 seconds) to handle large CSV uploads
+export const maxDuration = 300; // seconds
 
 // This API endpoint will be called by your automation
 export async function POST(request: NextRequest) {
