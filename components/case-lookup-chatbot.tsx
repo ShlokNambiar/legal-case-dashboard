@@ -189,7 +189,7 @@ export default function CaseLookupChatbot() {
     return <Badge variant="outline" className="border-orange-200 text-orange-700">⏳ लंबित</Badge>
   }
 
-  const CaseCard = ({ case_: CaseRecord }) => (
+  const CaseCard = ({ case_ }: { case_: CaseRecord }) => (
     <Card className="mb-4 border-0 shadow-lg bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 hover:shadow-xl transition-all duration-300">
       <CardHeader className="pb-4 bg-gradient-to-r from-blue-600/5 to-purple-600/5 rounded-t-lg">
         <CardTitle className="text-lg flex items-center gap-3 flex-wrap">
