@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Scale, MapPin, ArrowRight, FileText, Users, Clock, Shield } from "lucide-react"
+import { Scale, MapPin, ArrowRight, FileText, Users, Clock, Shield, MessageCircle } from "lucide-react"
 
 
 export default function HomePage() {
@@ -46,6 +46,29 @@ export default function HomePage() {
             <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mx-auto mb-2" />
             <p className="text-xs sm:text-sm font-medium text-gray-700">Secure Platform</p>
           </div>
+        </div>
+
+        {/* Case Lookup Chatbot */}
+        <div className="mb-8">
+          <Card className="group border border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-emerald-50">
+            <CardHeader className="text-center pb-6">
+              <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                <MessageCircle className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">केस लुकअप चैटबॉट</CardTitle>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                केस नंबर से तुरंत अपना केस खोजें - AI असिस्टेंट के साथ आसान और तेज़
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0 pb-6">
+              <Link href="/case-lookup" className="block">
+                <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  केस लुकअप चैटबॉट खोलें
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Dashboard Selection */}

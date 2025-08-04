@@ -1,11 +1,42 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeDatabase, supabase } from "@/lib/dbSupabase"
+import { initializeDatabase, supabase, getAllCases } from "@/lib/dbSupabase"
+
+// GET endpoint to fetch all cases
+export async function GET() {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  }
+
+  try {
+    await initializeDatabase()
+
+    console.log('🔄 FETCHING ALL CASES')
+    const cases = await getAllCases()
+
+    console.log(`✅ Successfully fetched ${cases.length} cases`)
+
+    return NextResponse.json({
+      success: true,
+      cases: cases,
+      lastUpdated: new Date().toISOString()
+    }, { headers })
+
+  } catch (error) {
+    console.error('Error fetching cases:', error)
+    return NextResponse.json(
+      { error: "Failed to fetch cases" },
+      { status: 500, headers }
+    )
+  }
+}
 
 // POST endpoint to add a new case
 export async function POST(request: NextRequest) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   }
 
@@ -71,7 +102,7 @@ export async function OPTIONS() {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   })

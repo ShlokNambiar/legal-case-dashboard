@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { initializeDatabase, updateCaseField, getCaseByNumber } from "@/lib/dbSupabase"
+import { initializeDatabase, updateCaseField, getCaseByNumber, getCaseByUid } from "@/lib/dbSupabase"
 
 // PATCH endpoint to update specific fields of a case
 export async function PATCH(
@@ -15,7 +15,7 @@ export async function PATCH(
   try {
     await initializeDatabase()
 
-    const { caseNumber } = await params
+    const { caseNumber } = await params // This is actually the UID from the URL
     const body = await request.json()
     const { field, value, uid } = body
 
@@ -26,7 +26,10 @@ export async function PATCH(
       )
     }
 
-    if (!uid) {
+    // Use the UID from URL parameter if no UID in body
+    const actualUid = uid || caseNumber
+
+    if (!actualUid) {
       return NextResponse.json(
         { error: "UID is required for updates" },
         { status: 400, headers }
@@ -41,10 +44,21 @@ export async function PATCH(
         { status: 400, headers }
       )
     }
-    
-    console.log(`API: Updating case UID ${uid} (${caseNumber}), field: ${field}, value: ${value}`)
 
-    const result = await updateCaseField(uid, field, value)
+    // Convert date format if needed
+    let processedValue = value
+    if (field === 'next_date' && typeof value === 'string') {
+      // Convert YYYY-MM-DD to DD-MM-YYYY for database storage
+      if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = value.split('-')
+        processedValue = `${day}-${month}-${year}`
+        console.log(`📅 Converted date from ${value} to ${processedValue}`)
+      }
+    }
+
+    console.log(`API: Updating case UID ${actualUid}, field: ${field}, value: ${processedValue}`)
+
+    const result = await updateCaseField(actualUid, field, processedValue)
 
     if (!result.success) {
       return NextResponse.json(
@@ -55,7 +69,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      message: `Updated ${field} for case ${caseNumber} (UID: ${uid})`,
+      message: `Updated ${field} for case UID: ${actualUid}`,
       updated: result.updated
     }, { headers })
 

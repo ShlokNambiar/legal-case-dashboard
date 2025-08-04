@@ -154,8 +154,8 @@ export async function updateCaseField(uid: string, field: string, value: string)
   
   // Map frontend field names to your exact database column names
   const fieldMapping: Record<string, string> = {
-    'status': 'Received',      // Maps to "Received" column
-    'received': 'Received',    // Maps to "Received" column  
+    'status': 'status',        // Maps to "status" column (user-entered status)
+    'received': 'Received',    // Maps to "Received" column (received status)
     'next_date': 'Next Date',  // Maps to "Next Date" column
     'case_type': 'Case Type'   // Maps to "Case Type" column
   }
@@ -192,27 +192,92 @@ export async function updateCaseField(uid: string, field: string, value: string)
 
 export async function getCaseByNumber(caseNumber: string): Promise<CaseRecord | null> {
   console.log(`🔍 Looking for case: ${caseNumber}`)
-  
+
   const { data, error } = await supabase.from('CaseData').select('*').eq('Case Number', caseNumber)
-  
+
   if (error) {
     console.error('❌ Error fetching case by number:', error)
     return null
   }
-  
+
   if (!data || data.length === 0) {
     console.log(`❌ No case found with case number: ${caseNumber}`)
     return null
   }
-  
+
   if (data.length > 1) {
     console.error(`⚠️ DANGER: Multiple cases found with case number "${caseNumber}":`, data)
     // Return the first one but log the issue
     return data[0] as CaseRecord
   }
-  
+
   console.log(`✅ Found unique case: ${caseNumber}`)
   return data[0] as CaseRecord
+}
+
+export async function getCaseByUid(uid: string): Promise<CaseRecord | null> {
+  console.log(`🔍 Looking for case by UID: ${uid}`)
+
+  const { data, error } = await supabase.from('CaseData').select('*').eq('uid', uid)
+
+  if (error) {
+    console.error('❌ Error fetching case by UID:', error)
+    return null
+  }
+
+  if (!data || data.length === 0) {
+    console.log(`❌ No case found with UID: ${uid}`)
+    return null
+  }
+
+  console.log(`✅ Found case by UID: ${data[0]['Case Number']}`)
+  return data[0] as CaseRecord
+}
+
+// Search for cases by case number with partial matching
+export async function searchCasesByNumber(searchTerm: string): Promise<CaseRecord[]> {
+  console.log(`🔍 Searching for cases with term: ${searchTerm}`)
+
+  if (!searchTerm || searchTerm.trim().length === 0) {
+    return []
+  }
+
+  const cleanSearchTerm = searchTerm.trim()
+
+  try {
+    // First try exact match
+    const { data: exactMatch, error: exactError } = await supabase
+      .from('CaseData')
+      .select('*')
+      .eq('Case Number', cleanSearchTerm)
+      .limit(10)
+
+    if (exactError) {
+      console.error('❌ Error in exact search:', exactError)
+    } else if (exactMatch && exactMatch.length > 0) {
+      console.log(`✅ Found ${exactMatch.length} exact matches`)
+      return exactMatch as CaseRecord[]
+    }
+
+    // If no exact match, try partial matching
+    const { data: partialMatches, error: partialError } = await supabase
+      .from('CaseData')
+      .select('*')
+      .ilike('Case Number', `%${cleanSearchTerm}%`)
+      .limit(10)
+
+    if (partialError) {
+      console.error('❌ Error in partial search:', partialError)
+      return []
+    }
+
+    console.log(`✅ Found ${partialMatches?.length || 0} partial matches`)
+    return (partialMatches || []) as CaseRecord[]
+
+  } catch (error) {
+    console.error('❌ Error searching cases:', error)
+    return []
+  }
 }
 
 // Function to check for duplicate case numbers in the database

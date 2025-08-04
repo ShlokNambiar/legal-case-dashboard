@@ -284,7 +284,7 @@ export default function TrimbakeshwarDashboard() {
   }
 
   // Handle add new case
-  const handleAddNewCase = () => {
+  const handleAddNewCase = async () => {
     if (!newCase.caseNumber || !newCase.appellant || !newCase.respondent) {
       alert("Please fill in all required fields")
       return
@@ -305,23 +305,28 @@ export default function TrimbakeshwarDashboard() {
       lastUpdate: new Date().toISOString(),
     }
 
-    // Add the case using the addCase function from useCases hook
-    const result = addCase(caseData)
+    try {
+      // Add the case using the addCase function from useCases hook
+      const result = await addCase(caseData)
 
-    if (result.success) {
-      // Reset form and close dialog
-      setNewCase({
-        caseNumber: "",
-        appellant: "",
-        respondent: "",
-        caseType: "अपील"
-      })
-      setAddCaseDialogOpen(false)
+      if (result.success) {
+        // Reset form and close dialog
+        setNewCase({
+          caseNumber: "",
+          appellant: "",
+          respondent: "",
+          caseType: "अपील"
+        })
+        setAddCaseDialogOpen(false)
 
-      // Show success message
-      alert("Case added successfully!")
-    } else {
-      alert(`Failed to add case: ${result.error}`)
+        // Show success message
+        alert("Case added successfully!")
+      } else {
+        alert(`Failed to add case: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error adding case:', error)
+      alert(`Failed to add case: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -373,6 +378,25 @@ export default function TrimbakeshwarDashboard() {
       month: "2-digit",
       year: "numeric",
     })
+  }
+
+  // Convert DD-MM-YYYY to YYYY-MM-DD for HTML date inputs
+  const formatDateForInput = (dateString: string) => {
+    if (!dateString) return "2025-07-17"
+
+    // If already in YYYY-MM-DD format, return as-is
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString
+    }
+
+    // Convert DD-MM-YYYY to YYYY-MM-DD
+    if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = dateString.split('-')
+      return `${year}-${month}-${day}`
+    }
+
+    // Fallback
+    return "2025-07-17"
   }
 
   // Get status badge variant and icon
@@ -646,7 +670,7 @@ export default function TrimbakeshwarDashboard() {
                               <TableCell className="p-2 sm:p-4">
                                 <Input
                                   type="date"
-                                  value={nextDates[case_.caseNumber] || case_.nextDate || "2025-07-17"}
+                                  value={formatDateForInput(nextDates[case_.caseNumber] || case_.nextDate || "2025-07-17")}
                                   onChange={(e) => handleNextDateUpdate(case_, e.target.value)}
                                   className="w-full min-w-[130px] h-8 text-xs border-indigo-200 focus:border-indigo-400"
                                 />
