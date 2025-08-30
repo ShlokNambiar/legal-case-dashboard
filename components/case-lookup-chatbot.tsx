@@ -38,7 +38,7 @@ export default function CaseLookupChatbot() {
     {
       id: '1',
       type: 'bot',
-      content: '🙏 नमस्कार! मैं आपका AI केस लुकअप असिस्टेंट हूं। मैं आपको तुरंत केस की जानकारी दे सकता हूं।\n\n📝 कृपया केस नंबर दर्ज करें:\n• पूरा केस नंबर (जैसे "अपील/177/2024")\n• केवल नंबर (जैसे "177")\n• अपीलकर्ता का नाम भी खोज सकते हैं',
+      content: '🙏 नमस्कार! मी तुमचा AI केस लुकअप असिस्टंट आहे। मी तुम्हाला लगेच केसची माहिती देऊ शकतो।\n\nHello! I am your AI Case Lookup Assistant. I can provide you case information instantly.\n\n📝 कृपया केस नंबर टाका / Please enter case number:\n• संपूर्ण केस नंबर (जसे "अपील/177/2024") / Complete case number (like "Appeal/177/2024")\n• फक्त नंबर (जसे "177") / Only number (like "177")\n• अपीलकर्त्याचे नाव देखील शोधू शकता / You can also search appellant name',
       timestamp: new Date()
     }
   ])
@@ -87,7 +87,7 @@ export default function CaseLookupChatbot() {
       {
         id: '1',
         type: 'bot',
-        content: '🙏 नमस्कार! मैं आपका AI केस लुकअप असिस्टेंट हूं। मैं आपको तुरंत केस की जानकारी दे सकता हूं।\n\n📝 कृपया केस नंबर दर्ज करें:\n• पूरा केस नंबर (जैसे "अपील/177/2024")\n• केवल नंबर (जैसे "177")\n• अपीलकर्ता का नाम भी खोज सकते हैं',
+        content: '🙏 नमस्कार! मी तुमचा AI केस लुकअप असिस्टंट आहे। मी तुम्हाला लगेच केसची माहिती देऊ शकतो।\n\nHello! I am your AI Case Lookup Assistant. I can provide you case information instantly.\n\n📝 कृपया केस नंबर टाका / Please enter case number:\n• संपूर्ण केस नंबर (जसे "अपील/177/2024") / Complete case number (like "Appeal/177/2024")\n• फक्त नंबर (जसे "177") / Only number (like "177")\n• अपीलकर्त्याचे नाव देखील शोधू शकता / You can also search appellant name',
         timestamp: new Date()
       }
     ])
@@ -117,14 +117,14 @@ export default function CaseLookupChatbot() {
         botResponse = {
           id: (Date.now() + 1).toString(),
           type: 'bot',
-          content: `❌ केस नंबर "${query}" के लिए कोई रिकॉर्ड नहीं मिला।\n\n💡 सुझाव:\n• केस नंबर की जांच करें\n• केवल नंबर लिखकर देखें (जैसे "177")\n• अपीलकर्ता का नाम लिखकर देखें\n• स्पेलिंग की जांच करें`,
+          content: `❌ केस नंबर "${query}" साठी कोणताही रेकॉर्ड सापडला नाही। / No record found for case number "${query}".\n\n💡 सूचना / Suggestions:\n• केस नंबर तपासा / Check case number\n• फक्त नंबर लिहून पहा (जसे "177") / Try only number (like "177")\n• अपीलकर्त्याचे नाव लिहून पहा / Try appellant name\n• स्पेलिंग तपासा / Check spelling`,
           timestamp: new Date()
         }
       } else if (cases.length === 1) {
         botResponse = {
           id: (Date.now() + 1).toString(),
           type: 'bot',
-          content: `🎉 बहुत बढ़िया! मुझे आपका केस मिल गया। यहाँ पूरी जानकारी है:`,
+          content: `🎉 अतिशय छान! मला तुमचा केस सापडला आहे। येथे संपूर्ण माहिती आहे: / Excellent! I found your case. Here is the complete information:`,
           timestamp: new Date(),
           cases: cases
         }
@@ -132,7 +132,7 @@ export default function CaseLookupChatbot() {
         botResponse = {
           id: (Date.now() + 1).toString(),
           type: 'bot',
-          content: `✅ मुझे ${cases.length} केस मिले हैं जो "${query}" से मेल खाते हैं:`,
+          content: `✅ मला ${cases.length} केस सापडले आहेत जे "${query}" शी जुळतात: / I found ${cases.length} cases that match "${query}":`,
           timestamp: new Date(),
           cases: cases
         }
@@ -143,7 +143,7 @@ export default function CaseLookupChatbot() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: '⚠️ माफ़ करें, केस खोजने में तकनीकी समस्या हुई है।\n\n🔄 कृपया:\n• कुछ देर बाद कोशिश करें\n• इंटरनेट कनेक्शन जांचें\n• पेज को रिफ्रेश करें',
+        content: '⚠️ माफ करा, केस शोधण्यात तांत्रिक समस्या आली आहे। / Sorry, there was a technical problem in searching the case.\n\n🔄 कृपया / Please:\n• काही वेळानंतर प्रयत्न करा / Try after some time\n• इंटरनेट कनेक्शन तपासा / Check internet connection\n• पेज रिफ्रेश करा / Refresh the page',
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -160,7 +160,7 @@ export default function CaseLookupChatbot() {
   }
 
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString || dateString === 'N/A' || dateString === '-') return 'निर्धारित नहीं'
+    if (!dateString || dateString === 'N/A' || dateString === '-') return 'निर्धारित नाही / Not determined'
     try {
       // Handle DD-MM-YYYY format
       if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
@@ -184,9 +184,9 @@ export default function CaseLookupChatbot() {
 
   const getStatusBadge = (received: string | undefined) => {
     if (received === 'प्राप्त') {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">✅ प्राप्त</Badge>
+      return <Badge className="bg-green-100 text-green-800 border-green-200">✅ प्राप्त / Received</Badge>
     }
-    return <Badge variant="outline" className="border-orange-200 text-orange-700">⏳ लंबित</Badge>
+    return <Badge variant="outline" className="border-orange-200 text-orange-700">⏳ प्रलंबित / Pending</Badge>
   }
 
   const CaseCard = ({ case_ }: { case_: CaseRecord }) => (
@@ -198,11 +198,11 @@ export default function CaseLookupChatbot() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-gray-900 truncate">{case_["Case Number"]}</div>
-            <div className="text-sm text-gray-600 mt-1">केस नंबर</div>
+            <div className="text-sm text-gray-600 mt-1">केस नंबर / Case Number</div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-              {case_["Case Type"] || "अपील"}
+              {case_["Case Type"] || "अपील / Appeal"}
             </Badge>
             <Button
               variant="ghost"
@@ -224,7 +224,7 @@ export default function CaseLookupChatbot() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-gray-700">अपीलकर्ता</span>
+              <span className="text-sm font-medium text-gray-700">अपीलकर्ता / Appellant</span>
             </div>
             <p className="text-sm text-gray-900 font-medium bg-green-50 p-2 rounded border-l-2 border-green-200">
               {case_["Appellant"]}
@@ -233,7 +233,7 @@ export default function CaseLookupChatbot() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-red-600" />
-              <span className="text-sm font-medium text-gray-700">प्रतिवादी</span>
+              <span className="text-sm font-medium text-gray-700">प्रतिवादी / Respondent</span>
             </div>
             <p className="text-sm text-gray-900 font-medium bg-red-50 p-2 rounded border-l-2 border-red-200">
               {case_["Respondent"]}
@@ -247,7 +247,7 @@ export default function CaseLookupChatbot() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">तालुका</span>
+              <span className="text-sm font-medium text-gray-700">तालुका / Taluka</span>
             </div>
             <p className="text-sm text-gray-900 font-medium bg-purple-50 p-2 rounded border-l-2 border-purple-200">
               {case_["Taluka"]}
@@ -257,7 +257,7 @@ export default function CaseLookupChatbot() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-orange-600" />
-              <span className="text-sm font-medium text-gray-700">स्थिति</span>
+              <span className="text-sm font-medium text-gray-700">स्थिती / Status</span>
             </div>
             <div className="flex items-center">
               {getStatusBadge(case_["Received"])}
@@ -267,7 +267,7 @@ export default function CaseLookupChatbot() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-indigo-600" />
-              <span className="text-sm font-medium text-gray-700">अगली तारीख</span>
+              <span className="text-sm font-medium text-gray-700">पुढील तारीख / Next Date</span>
             </div>
             <p className="text-sm text-gray-900 font-medium bg-indigo-50 p-2 rounded border-l-2 border-indigo-200">
               {formatDate(case_["Next Date"])}
@@ -281,7 +281,7 @@ export default function CaseLookupChatbot() {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-medium text-gray-700">टिप्पणी</span>
+                <span className="text-sm font-medium text-gray-700">टिप्पणी / Remarks</span>
               </div>
               <p className="text-sm text-gray-900 bg-amber-50 p-3 rounded border-l-2 border-amber-200">
                 {case_.status}
@@ -310,10 +310,10 @@ export default function CaseLookupChatbot() {
             </div>
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                AI केस लुकअप असिस्टेंट
+                AI केस लुकअप असिस्टंट / AI Case Lookup Assistant
                 <Bot className="h-6 w-6 animate-pulse" />
               </h2>
-              <p className="text-sm opacity-90 mt-1">तुरंत केस की जानकारी प्राप्त करें</p>
+              <p className="text-sm opacity-90 mt-1">लगेच केसची माहिती मिळवा / Get case information instantly</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -328,7 +328,7 @@ export default function CaseLookupChatbot() {
             </Button>
             <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium">ऑनलाइन</span>
+              <span className="text-xs font-medium">ऑनलाइन / Online</span>
             </div>
           </div>
         </div>
@@ -349,7 +349,7 @@ export default function CaseLookupChatbot() {
                     <div className="p-1.5 bg-blue-100 rounded-full">
                       <Bot className="h-4 w-4 text-blue-600" />
                     </div>
-                    <span className="text-sm font-semibold text-blue-600">AI असिस्टेंट</span>
+                    <span className="text-sm font-semibold text-blue-600">AI असिस्टंट / AI Assistant</span>
                     <div className="flex-1"></div>
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   </div>
@@ -358,7 +358,7 @@ export default function CaseLookupChatbot() {
                 {message.type === 'user' && (
                   <div className="flex items-center gap-2 mb-2">
                     <User className="h-4 w-4" />
-                    <span className="text-sm font-medium opacity-90">आप</span>
+                    <span className="text-sm font-medium opacity-90">तुम्ही / You</span>
                   </div>
                 )}
 
@@ -382,7 +382,7 @@ export default function CaseLookupChatbot() {
                     })}
                   </p>
                   {message.type === 'user' && (
-                    <div className="text-xs opacity-60">✓ भेजा गया</div>
+                    <div className="text-xs opacity-60">✓ पाठवले / Sent</div>
                   )}
                 </div>
               </div>
@@ -396,12 +396,12 @@ export default function CaseLookupChatbot() {
                   <div className="p-1.5 bg-blue-100 rounded-full">
                     <Bot className="h-4 w-4 text-blue-600" />
                   </div>
-                  <span className="text-sm font-semibold text-blue-600">AI असिस्टेंट</span>
+                  <span className="text-sm font-semibold text-blue-600">AI असिस्टंट / AI Assistant</span>
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
-                  <span className="text-sm">केस डेटाबेस में खोज रहा हूं...</span>
+                  <span className="text-sm">केस डेटाबेसमध्ये शोधत आहे... / Searching in case database...</span>
                 </div>
                 <div className="mt-2 flex gap-1">
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
@@ -424,7 +424,7 @@ export default function CaseLookupChatbot() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="केस नंबर या अपीलकर्ता का नाम दर्ज करें..."
+              placeholder="केस नंबर किंवा अपीलकर्त्याचे नाव टाका... / Enter case number or appellant name..."
               className="flex-1 h-12 pl-4 pr-12 text-base border-2 border-gray-200 focus:border-blue-500 rounded-xl shadow-sm"
               disabled={isLoading}
             />
@@ -445,19 +445,19 @@ export default function CaseLookupChatbot() {
 
         {/* Quick suggestions */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="text-xs text-gray-500 font-medium">त्वरित खोज:</span>
+          <span className="text-xs text-gray-500 font-medium">त्वरित शोध / Quick Search:</span>
           {[
-            { text: '177', label: 'केस 177' },
-            { text: 'अपील/177/2024', label: 'पूरा केस नंबर' },
-            { text: 'भरत नवले', label: 'अपीलकर्ता नाम' },
-            { text: 'Igatpuri', label: 'तालुका' }
+            { text: '177', label: 'केस 177 / Case 177' },
+            { text: 'अपील/177/2024', label: 'संपूर्ण केस नंबर / Full Case Number' },
+            { text: 'भरत नवले', label: 'अपीलकर्ता नाव / Appellant Name' },
+            { text: 'Igatpuri', label: 'तालुका / Taluka' }
           ].map((suggestion) => (
             <button
               key={suggestion.text}
               onClick={() => setInputValue(suggestion.text)}
               disabled={isLoading}
               className="px-3 py-1.5 text-xs bg-gradient-to-r from-gray-100 to-gray-50 hover:from-blue-100 hover:to-blue-50 text-gray-700 hover:text-blue-700 rounded-full border border-gray-200 hover:border-blue-300 transition-all duration-200 disabled:opacity-50 font-medium"
-              title={`खोजें: ${suggestion.text}`}
+              title={`शोधा / Search: ${suggestion.text}`}
             >
               {suggestion.label}
             </button>
