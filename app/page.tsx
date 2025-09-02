@@ -55,15 +55,15 @@ export default function HomePage() {
               <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                 <MessageCircle className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">केस लुकअप चैटबॉट</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">केस लुकअप चॅटबॉट / Case Lookup Chatbot</CardTitle>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                केस नंबर से तुरंत अपना केस खोजें - AI असिस्टेंट के साथ आसान और तेज़
+                केस नंबरवरून तुमचा केस लगेच शोधा - AI असिस्टंटसह सोपे आणि जलद / Find your case instantly by case number - Easy and fast with AI Assistant
               </p>
             </CardHeader>
             <CardContent className="pt-0 pb-6">
               <Link href="/case-lookup" className="block">
                 <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                  केस लुकअप चैटबॉट खोलें
+                  केस लुकअप चॅटबॉट उघडा / Open Case Lookup Chatbot
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
               </Link>
